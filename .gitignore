@@ -1,0 +1,25 @@
+```gitignore
+# Android Studio / IntelliJ
+.idea/
+*.iml
+
+# Build outputs
+/build/
+app/build/
+
+# Gradle
+.gradle/
+local.properties
+
+# Logs
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Kotlin build caches
+out/
+
+# Android test artifacts
+captures/
