@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sound_caption">通知音：</string>
+    <string name="pattern_caption">パターン：</string>
+    <string name="edit_btn1">設定</string>
+    <string name="app_name">SmartNotifier</string>
+    <string name="hint_kw1">判定文字列 1</string>
+    <string name="hint_kw2">判定文字列 2</string>
+    <string name="hint_kw3">判定文字列 3</string>
+
+    <string name="btn_select_sound_1">通知音を選ぶ (1)</string>
+    <string name="btn_select_sound_2">通知音を選ぶ (2)</string>
+    <string name="btn_select_sound_3">通知音を選ぶ (3)</string>
+
+    <!-- captions  -->
+    <string name="caption_pattern">パターン</string>
+    <string name="caption_notification">通知</string>
+    <string name="caption_notify_sound">通知音</string>
+    <string name="caption_notification_1">通知1</string>
+    <string name="caption_notification_2">通知2</string>
+    <string name="caption_notification_3">通知3</string>
+    <string name="caption_notification_4">通知4</string>
+    <string name="caption_notification_5">通知5</string>
+    <string name="caption_notification_6">通知6</string>
+    <string name="caption_notification_7">通知7</string>
+    <string name="caption_notification_8">通知8</string>
+    <string name="caption_notification_9">通知9</string>
+    <string name="caption_notification_10">通知10</string>
+
+    <!-- hints  -->
+    <string name="hinst_tap_to_select">タップして選択</string>
+
+    <!-- bottton actions -->
+    <string name="btn_action_commit">決定</string>
+    <string name="btn_action_return">戻る</string>
+    <string name="btn_action_save">保存</string>
+
+</resources>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material のフォーム幅推奨に合わせて上限。タブレットで全幅にならないようにする -->
+    <dimen name="form_max_width">560dp</dimen>
+</resources>

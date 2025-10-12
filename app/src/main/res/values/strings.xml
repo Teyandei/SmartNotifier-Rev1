@@ -1,0 +1,37 @@
+<resources>
+    <string name="sound_caption">Sound:</string>
+    <string name="pattern_caption">Pattern:</string>
+    <string name="edit_btn1">Settings</string>
+    <string name="app_name">SmartNotifier</string>
+    <string name="hint_kw1">Search string 1</string>
+    <string name="hint_kw2">Search string 2</string>
+    <string name="hint_kw3">Search string 3</string>
+
+    <string name="btn_select_sound_1">notification sound (1)</string>
+    <string name="btn_select_sound_2">notification sound (2)</string>
+    <string name="btn_select_sound_3">notification sound (3)</string>
+
+    <!-- captions  -->
+    <string name="caption_pattern">Pattern</string>
+    <string name="caption_notification">Notification</string>
+    <string name="caption_notify_sound">Notify Sound</string>
+    <string name="caption_notification_1">Notification 1</string>
+    <string name="caption_notification_2">Notification 2</string>
+    <string name="caption_notification_3">Notification 3</string>
+    <string name="caption_notification_4">Notification 4</string>
+    <string name="caption_notification_5">Notification 5</string>
+    <string name="caption_notification_6">Notification 6</string>
+    <string name="caption_notification_7">Notification 7</string>
+    <string name="caption_notification_8">Notification 8</string>
+    <string name="caption_notification_9">Notification 9</string>
+    <string name="caption_notification_10">Notification 10</string>
+
+    <!-- hints  -->
+    <string name="hinst_tap_to_select">Tap to Select</string>
+
+    <!-- bottton actions -->
+    <string name="btn_action_commit">Coomit</string>
+    <string name="btn_action_return">Return</string>
+    <string name="btn_action_save">Save</string>
+
+</resources>
