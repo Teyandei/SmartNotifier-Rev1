@@ -2,12 +2,12 @@ package com.example.smartnotifier
 
 import android.content.Intent
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.net.toUri
 import kotlin.text.set
 
 class MainActivity : AppCompatActivity() {
@@ -37,7 +37,9 @@ class MainActivity : AppCompatActivity() {
 
         fun bind(i: Int, patId: Int, sndId: Int, swId: Int) {
             val row = rows.getOrNull(i)
-            val soundName = RingtoneManager.getRingtone(this, row?.soundKey?.toUri())?.getTitle(this) ?: row?.soundKey
+            val soundName = row?.soundKey?.takeUnless { it == Uri.EMPTY }
+                ?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) ?: it.toString() }
+                ?: ""
             findViewById<TextView>(patId).text  = row?.title.orEmpty()
             findViewById<TextView>(sndId).text  = soundName
             findViewById<SwitchMaterial>(swId).isChecked = when (row?.enable?.lowercase()) {
