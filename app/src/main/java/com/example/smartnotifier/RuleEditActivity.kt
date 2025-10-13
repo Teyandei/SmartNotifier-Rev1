@@ -33,8 +33,8 @@ class RuleEditActivity : AppCompatActivity() {
                     val title = RingtoneManager.getRingtone(this, uri)?.getTitle(this) ?: uri.toString()
                     // 画面の soundX を更新
                     soundEdits[pickIndex].setText(title)
-                    // rows に URI 文字列を保持（保存時に使う）
-                    rows[pickIndex] = rows[pickIndex].copy(soundKey = uri.toString())
+                    // rows に URI を保持（保存時に使う）
+                    rows[pickIndex] = rows[pickIndex].copy(soundKey = uri)
                     setDirty(true)
                 }
             }
@@ -103,7 +103,7 @@ class RuleEditActivity : AppCompatActivity() {
             // 通知音欄：タップでピッカー
             soundEdits[i].setOnClickListener {
                 pickIndex = i
-                launchPicker(rows[i].soundKey.takeIf { it.isNotBlank() })
+                launchPicker(rows[i].soundKey.takeIf { it != Uri.EMPTY })
             }
         }
 
@@ -133,26 +133,23 @@ class RuleEditActivity : AppCompatActivity() {
         btnSave.isEnabled = v
     }
 
-    private fun launchPicker(current: String?) {
+    private fun launchPicker(current: Uri?) {
         val intent = Intent(RingtoneManager.ACTION_RINGTONE_PICKER).apply {
             putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
             putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, false)
             putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-            if (!current.isNullOrBlank()) {
-                runCatching { Uri.parse(current) }.getOrNull()?.let {
-                    putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, it)
-                }
+            current?.let {
+                putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, it)
             }
         }
         pickSound.launch(intent)
     }
 
     // URI or 任意のキーから表示名を作る
-    private fun soundDisplayName(key: String): String {
-        if (key.isBlank()) return ""  // 未設定
+    private fun soundDisplayName(key: Uri): String {
+        if (key == Uri.EMPTY) return ""  // 未設定
         return runCatching {
-            val uri = Uri.parse(key)
-            RingtoneManager.getRingtone(this, uri)?.getTitle(this)
-        }.getOrNull() ?: key
+            RingtoneManager.getRingtone(this, key)?.getTitle(this)
+        }.getOrNull() ?: key.toString()
     }
 }
