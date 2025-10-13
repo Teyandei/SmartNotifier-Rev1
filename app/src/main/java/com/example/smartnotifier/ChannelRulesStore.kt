@@ -3,6 +3,9 @@ package com.example.smartnotifier
 import android.content.Context
 import java.io.File
 import java.nio.charset.Charset
+import android.media.RingtoneManager
+import android.net.Uri
+import androidx.core.net.toUri
 
 object ChannelRulesStore {
 
@@ -50,7 +53,7 @@ object ChannelRulesStore {
             if (line.isBlank()) continue
             val parts = line.split('\t', limit = 3) // タブ区切り、2列に限定
             if (parts.size == 3) {
-                out += RuleRow(parts[0], parts[1], parts[2])
+                out += RuleRow(parts[0], parts[1].toUri(), parts[2])
             }
         }
         return out
@@ -91,16 +94,24 @@ object ChannelRulesStore {
     /**
      * 雛形10行（必要に応じて好きな文面に変更）
      */
-    fun defaultTenRows(): List<RuleRow> = listOf(
-        RuleRow("tabako", "content://settings/system/notification_sound", ""),
-        RuleRow("start",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot3",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot4",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot5",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot6",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot7",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot8",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot9",  "content://settings/system/notification_sound", ""),
-        RuleRow("slot10", "content://settings/system/notification_sound", "")
-    )
+    fun defaultTenRows(): List<RuleRow> {
+
+        // Contextを使って、現在設定されているデフォルト通知音のUriを取得します
+        val defaultNotificationUri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+        // リストの生成と返却
+        return listOf(
+            // RuleRowの第2パラメータに Uri オブジェクトを渡します
+            RuleRow("slot1", defaultNotificationUri, ""),
+            RuleRow("slot2",  defaultNotificationUri, ""),
+            RuleRow("slot3",  defaultNotificationUri, ""),
+            RuleRow("slot4",  defaultNotificationUri, ""),
+            RuleRow("slot5",  defaultNotificationUri, ""),
+            RuleRow("slot6",  defaultNotificationUri, ""),
+            RuleRow("slot7",  defaultNotificationUri, ""),
+            RuleRow("slot8",  defaultNotificationUri, ""),
+            RuleRow("slot9",  defaultNotificationUri, ""),
+            RuleRow("slot10", defaultNotificationUri, "")
+        )
+    }
 }

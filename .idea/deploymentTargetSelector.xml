@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="SmartNotifier">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-10-12T11:43:41.624370700Z">
+        <DropdownSelection timestamp="2025-10-13T07:44:42.534760100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=SX1LHMA212101827" />
