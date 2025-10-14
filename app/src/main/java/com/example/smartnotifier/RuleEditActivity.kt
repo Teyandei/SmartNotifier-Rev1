@@ -10,12 +10,10 @@ import android.text.TextWatcher
 import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.IntentCompat
 import com.google.android.material.button.MaterialButton
 
 class RuleEditActivity : AppCompatActivity() {
-
-    private val channelId = "jawbone"      // 編集対象のチャンネルID（必要に応じて渡す）
-
     private lateinit var btnSave: MaterialButton
     private var dirty = false
 
@@ -26,20 +24,36 @@ class RuleEditActivity : AppCompatActivity() {
     private val pickSound =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && pickIndex >= 0) {
-                val uri: Uri? =
-                    result.data?.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI)
-                if (uri != null) {
-                    // 選択した音名を取得して表示
-                    val title = RingtoneManager.getRingtone(this, uri)?.getTitle(this) ?: uri.toString()
-                    // 画面の soundX を更新
+
+                // ★FIX: Activity の intent ではなく、結果の intent を使う
+                val dataIntent = result.data
+
+                // 型付き getParcelableExtra で安全に取得
+                val uri: Uri? = IntentCompat.getParcelableExtra(
+                    dataIntent,
+                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
+                    Uri::class.java
+                )
+
+                // デフォルト着信音を選んだ場合は DEFAULT_NOTIFICATION_URI が来ることがある
+                val picked = uri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+
+                if (picked != null) {
+                    // 表示名に変換
+                    val title = RingtoneManager.getRingtone(this, picked)?.getTitle(this) ?: picked.toString()
+
+                    // 画面へ反映
                     soundEdits[pickIndex].setText(title)
-                    // rows に URI を保持（保存時に使う）
-                    rows[pickIndex] = rows[pickIndex].copy(soundKey = uri)
+
+                    // rowsへ保存（保存ボタン押下でCSVへ反映）
+                    rows[pickIndex] = rows[pickIndex].copy(soundKey = picked)
+
                     setDirty(true)
                 }
             }
             pickIndex = -1
         }
+
 
     // 3項目分の View 参照（4〜10を増やすなら配列に追加）
     private val titleEdits by lazy {
@@ -79,8 +93,8 @@ class RuleEditActivity : AppCompatActivity() {
         val btnBack: MaterialButton = findViewById(R.id.btnBack)
 
         // TSVを用意 → 読み込み
-        ChannelRulesStore.ensureInitialized(this, channelId)
-        rows = ChannelRulesStore.loadAll(this, channelId)
+        ChannelRulesStore.ensureInitialized(this, ChannelId.CHATGPT_TASK.id)
+        rows = ChannelRulesStore.loadAll(this, ChannelId.CHATGPT_TASK.id)
 
         // 初期表示：タイトルとサウンド名（soundKeyはURI想定→タイトルに変換）
         for (i in titleEdits.indices) {
@@ -110,7 +124,7 @@ class RuleEditActivity : AppCompatActivity() {
         // 保存
         btnSave.setOnClickListener {
             // enable は編集していないので既存値を保持
-            ChannelRulesStore.saveAll(this, channelId, rows)
+            ChannelRulesStore.saveAll(this, ChannelId.CHATGPT_TASK.id, rows)
             setDirty(false)
         }
 

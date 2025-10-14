@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.smartnotifier.app-mergeDebugResources-33:/values-v28/values-v28.xml",
+            "outputFile": "com.example.smartnotifier.app-mergeDebugResources-34:/values-v28/values-v28.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\c44c5e9b00e7cb770ebac8dfe17166cf\\transformed\\material-1.13.0\\res\\values-v28\\values-v28.xml",
+                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\a64df31b4aaa7ce3efd906d6909b1b67\\transformed\\material-1.13.0\\res\\values-v28\\values-v28.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -23,7 +23,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\74e2cf8db6b03b348cce7b0ce514ee13\\transformed\\appcompat-1.7.1\\res\\values-v28\\values-v28.xml",
+                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\6d985a5c6d38d3317f7a3913b9dfdbda\\transformed\\appcompat-1.7.1\\res\\values-v28\\values-v28.xml",
                     "from": {
                         "startLines": "2,3,4,8",
                         "startColumns": "4,4,4,4",

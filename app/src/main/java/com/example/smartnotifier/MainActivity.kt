@@ -1,5 +1,9 @@
 package com.example.smartnotifier
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.provider.Settings
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
@@ -8,23 +12,24 @@ import android.widget.Button
 import android.widget.TextView
 import com.google.android.material.switchmaterial.SwitchMaterial
 import androidx.appcompat.app.AppCompatActivity
-import kotlin.text.set
+import androidx.core.app.NotificationManagerCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private val CHANNEL_ID = "jawbone" // ChatGPTタスクで使用される通知のチャンネルID
-
-    override fun onCreate(savedInstanceState: Bundle?) {
+   override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val btn: Button = findViewById(R.id.openRuleEdit)
-        ChannelRulesStore.ensureInitialized(this, CHANNEL_ID)
+        ensureChannels(this) // ← 先にチャンネル作成
+
+        ChannelRulesStore.ensureInitialized(this, ChannelId.CHATGPT_TASK.id)
         setDisplayUnit()
 
+        val btn: Button = findViewById(R.id.openRuleEdit)
         btn.setOnClickListener {
             startActivity(Intent(this, RuleEditActivity::class.java))
         }
+
     }
 
     override fun onResume() {
@@ -32,8 +37,16 @@ class MainActivity : AppCompatActivity() {
         setDisplayUnit()
     }
 
+    private fun hasNotificationAccess(): Boolean {
+        return NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
+    }
+
+    private fun promptNotificationAccess() {
+        startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+    }
+
     private fun setDisplayUnit() {
-        val rows = ChannelRulesStore.loadAll(this, CHANNEL_ID)
+        val rows = ChannelRulesStore.loadAll(this, ChannelId.CHATGPT_TASK.id)
 
         fun bind(i: Int, patId: Int, sndId: Int, swId: Int) {
             val row = rows.getOrNull(i)
@@ -62,16 +75,22 @@ class MainActivity : AppCompatActivity() {
         // --- スイッチ変更をTSVへ保存 ---
         fun attachSwitch(swId: Int, index: Int) {
             val sw = findViewById<SwitchMaterial>(swId)
+            sw.setOnCheckedChangeListener(null)
             sw.setOnCheckedChangeListener { _, isChecked ->
-                // rows[index] を "1"/"0" に更新
-                val cur = rows.getOrNull(index)
-                if (cur != null) {
-                    rows[index] = cur.copy(enable = if (isChecked) "1" else "0")
-                    // TSVに保存（アトミックセーブ）
-                    ChannelRulesStore.saveAll(this, CHANNEL_ID, rows)
+                val cur = rows.getOrNull(index) ?: return@setOnCheckedChangeListener
+
+                // 1) TSV更新
+                rows[index] = cur.copy(enable = if (isChecked) "1" else "0")
+                ChannelRulesStore.saveAll(this, ChannelId.CHATGPT_TASK.id, rows)
+
+                // 2) OFF→ON になり、まだ通知アクセスが無いときは誘導
+                if (isChecked && !hasNotificationAccess()) {
+                    promptNotificationAccess()
                 }
+                // 3) サービス開始/停止はしない（NotificationListenerService は OS がバインド）
             }
         }
+
 
         attachSwitch(R.id.enable1, 0)
         attachSwitch(R.id.enable2, 1)
@@ -85,4 +104,15 @@ class MainActivity : AppCompatActivity() {
         attachSwitch(R.id.enable10, 9)
 
     }
+
+    fun ensureChannels(context: Context) {
+        val nm = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val ch = NotificationChannel(
+            ChannelId.CHATGPT_TASK.id,
+            "ChatGPTタスク通知",
+            NotificationManager.IMPORTANCE_DEFAULT
+        )
+        nm.createNotificationChannel(ch)
+    }
+
 }

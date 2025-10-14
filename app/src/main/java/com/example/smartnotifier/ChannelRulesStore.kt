@@ -3,6 +3,7 @@ package com.example.smartnotifier
 import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
+import androidx.core.net.toUri
 import java.io.File
 import java.nio.charset.Charset
 
@@ -53,7 +54,7 @@ object ChannelRulesStore {
             val parts = line.split('\t', limit = 3) // タブ区切り、2列に限定
             if (parts.size == 3) {
                 val uri = parts[1].takeIf { it.isNotBlank() }
-                    ?.let { runCatching { Uri.parse(it) }.getOrNull() }
+                    ?.let { runCatching { it.toUri() }.getOrNull() }
                     ?: Uri.EMPTY
                 out += RuleRow(parts[0], uri, parts[2])
             }
@@ -87,16 +88,6 @@ object ChannelRulesStore {
         tmp.writeText(content, UTF8)
         if (f.exists()) f.delete()
         tmp.renameTo(f)
-    }
-
-    /**
-     * 1行を「タイトルが一致するなら更新、無ければ末尾に追加」
-     */
-    fun upsert(context: Context, channelId: String, row: RuleRow) {
-        val list = loadAll(context, channelId)
-        val idx = list.indexOfFirst { it.title.equals(row.title, ignoreCase = true) }
-        if (idx >= 0) list[idx] = row else list += row
-        saveAll(context, channelId, list)
     }
 
     /**

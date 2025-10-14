@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.smartnotifier.app-mergeDebugResources-33:/values-hdpi-v4/values-hdpi-v4.xml",
+            "outputFile": "com.example.smartnotifier.app-mergeDebugResources-34:/values-hdpi-v4/values-hdpi-v4.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\74e2cf8db6b03b348cce7b0ce514ee13\\transformed\\appcompat-1.7.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
+                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\6d985a5c6d38d3317f7a3913b9dfdbda\\transformed\\appcompat-1.7.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
                     "from": {
                         "startLines": "2",
                         "startColumns": "4",

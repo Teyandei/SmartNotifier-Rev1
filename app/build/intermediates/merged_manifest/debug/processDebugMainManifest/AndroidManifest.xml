@@ -8,6 +8,8 @@
         android:minSdkVersion="26"
         android:targetSdkVersion="36" />
 
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+
     <permission
         android:name="com.example.smartnotifier.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature" />
@@ -43,7 +45,7 @@
 
         <service
             android:name="com.example.smartnotifier.SmartNotifierService"
-            android:exported="false"
+            android:exported="true"
             android:label="Smart Notifier"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
             <intent-filter>
@@ -65,6 +67,11 @@
                 android:name="androidx.profileinstaller.ProfileInstallerInitializer"
                 android:value="androidx.startup" />
         </provider>
+
+        <service
+            android:name="androidx.room.MultiInstanceInvalidationService"
+            android:directBootAware="true"
+            android:exported="false" />
 
         <receiver
             android:name="androidx.profileinstaller.ProfileInstallReceiver"

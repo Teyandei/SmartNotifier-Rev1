@@ -5,6 +5,7 @@ color white
 dimen form_max_width
 drawable ic_launcher_background
 drawable ic_launcher_foreground
+drawable ic_notification
 id btnBack
 id btnSave
 id enable1

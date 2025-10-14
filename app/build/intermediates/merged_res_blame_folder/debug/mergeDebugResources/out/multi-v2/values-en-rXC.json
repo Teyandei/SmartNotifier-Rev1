@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.smartnotifier.app-mergeDebugResources-33:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.example.smartnotifier.app-mergeDebugResources-34:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\74e2cf8db6b03b348cce7b0ce514ee13\\transformed\\appcompat-1.7.1\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\6d985a5c6d38d3317f7a3913b9dfdbda\\transformed\\appcompat-1.7.1\\res\\values-en-rXC\\values-en-rXC.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29",
                         "startColumns": "4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4",
@@ -21,7 +21,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\cb5f6f8bf2c7a7ef52f138f50dee19f9\\transformed\\core-1.17.0\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "source": "C:\\Users\\yoshi\\.gradle\\caches\\8.13\\transforms\\c93d2e85860699eb5c3378d9072f82b6\\transformed\\core-1.17.0\\res\\values-en-rXC\\values-en-rXC.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
