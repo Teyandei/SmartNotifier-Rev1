@@ -12,7 +12,7 @@ object DatabaseProvider {
                 context.applicationContext,
                 AppDatabase::class.java,
                 "SmartNotifier.db"
-            ).fallbackToDestructiveMigration(true) // 初期導入は破壊的でも可
+            ).fallbackToDestructiveMigration() // 初期導入は破壊的でも可
                 .build()
                 .also { INSTANCE = it }
         }
