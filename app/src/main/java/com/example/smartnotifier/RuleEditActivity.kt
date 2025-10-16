@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
 import com.google.android.material.button.MaterialButton
+import com.example.smartnotifier.data.db.RuleRow
 
 class RuleEditActivity : AppCompatActivity() {
     private lateinit var btnSave: MaterialButton
@@ -19,6 +20,8 @@ class RuleEditActivity : AppCompatActivity() {
 
     // 表示用のローカルコピー（保存まではここを書き換える）
     private lateinit var rows: MutableList<RuleRow>
+    private lateinit var lastValidSearchTexts: MutableList<String>
+    private var isRestoringTitle = false
 
     private var pickIndex: Int = -1
     private val pickSound =
@@ -93,13 +96,18 @@ class RuleEditActivity : AppCompatActivity() {
         val btnBack: MaterialButton = findViewById(R.id.btnBack)
 
         // TSVを用意 → 読み込み
-        ChannelRulesStore.ensureInitialized(this, ChannelId.CHATGPT_TASK.id)
-        rows = ChannelRulesStore.loadAll(this, ChannelId.CHATGPT_TASK.id)
+        ChannelRulesStore.ensureInitialized(this, ChannelID.ChannelId.CHATGPT_TASK.id)
+        rows = ChannelRulesStore.loadAll(this, ChannelID.ChannelId.CHATGPT_TASK.id)
+        lastValidSearchTexts = MutableList(titleEdits.size) { index ->
+            rows.getOrNull(index)?.searchText.orEmpty()
+        }
 
         // 初期表示：タイトルとサウンド名（soundKeyはURI想定→タイトルに変換）
         for (i in titleEdits.indices) {
             val row = rows.getOrNull(i) ?: continue
-            titleEdits[i].setText(row.title)
+            val initialText = row.searchText.orEmpty()
+            titleEdits[i].setText(initialText)
+            lastValidSearchTexts[i] = initialText
 
             val display = soundDisplayName(row.soundKey)
             soundEdits[i].setText(display)
@@ -107,7 +115,26 @@ class RuleEditActivity : AppCompatActivity() {
             // 編集検知：タイトル
             titleEdits[i].addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    rows[i] = rows[i].copy(title = s?.toString().orEmpty())
+                    if (isRestoringTitle) {
+                        return
+                    }
+
+                    val text = s?.toString().orEmpty()
+                    if (text.isBlank()) {
+                        val previous = lastValidSearchTexts[i]
+                        isRestoringTitle = true
+                        titleEdits[i].setText(previous)
+                        titleEdits[i].setSelection(previous.length)
+                        isRestoringTitle = false
+                        AlertDialog.Builder(this@RuleEditActivity)
+                            .setMessage("空白には設定できません")
+                            .setPositiveButton("OK", null)
+                            .show()
+                        return
+                    }
+
+                    lastValidSearchTexts[i] = text
+                    rows[i] = rows[i].copy(searchText = text)
                     setDirty(true)
                 }
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -117,14 +144,14 @@ class RuleEditActivity : AppCompatActivity() {
             // 通知音欄：タップでピッカー
             soundEdits[i].setOnClickListener {
                 pickIndex = i
-                launchPicker(rows[i].soundKey.takeIf { it != Uri.EMPTY })
+                launchPicker(rows[i].soundKey?.takeIf { it != Uri.EMPTY })
             }
         }
 
         // 保存
         btnSave.setOnClickListener {
             // enable は編集していないので既存値を保持
-            ChannelRulesStore.saveAll(this, ChannelId.CHATGPT_TASK.id, rows)
+            ChannelRulesStore.saveAll(this, ChannelID.ChannelId.CHATGPT_TASK.id, rows)
             setDirty(false)
         }
 
@@ -160,8 +187,8 @@ class RuleEditActivity : AppCompatActivity() {
     }
 
     // URI or 任意のキーから表示名を作る
-    private fun soundDisplayName(key: Uri): String {
-        if (key == Uri.EMPTY) return ""  // 未設定
+    private fun soundDisplayName(key: Uri?): String {
+        if (key == null || key == Uri.EMPTY) return ""  // 未設定
         return runCatching {
             RingtoneManager.getRingtone(this, key)?.getTitle(this)
         }.getOrNull() ?: key.toString()

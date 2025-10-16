@@ -1,6 +1,7 @@
 package com.example.smartnotifier.data.db
 
 import android.net.Uri
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -8,9 +9,10 @@ import androidx.room.PrimaryKey
 data class RuleRow(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L,
     val channelId: String,
-    val appPackage: String,
-    val soundKey: Uri?,          // Uri をそのまま扱える（Converterで保存）
+    val appPackage: String? = null,
+    val soundKey: Uri? = null,          // Uri をそのまま扱える（Converterで保存）
     val enabled: Boolean = true,
     val priority: Int = 0,
-    val note: String? = null
+    @ColumnInfo(name = "note")
+    val searchText: String? = null
 )

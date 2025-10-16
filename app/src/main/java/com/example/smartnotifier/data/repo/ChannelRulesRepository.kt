@@ -12,4 +12,7 @@ class ChannelRulesRepository(
     suspend fun getEnabledByPackage(pkg: String) = dao.getEnabledByPackage(pkg)
     suspend fun upsert(rule: RuleRow) = dao.upsert(rule)
     suspend fun delete(rule: RuleRow) = dao.delete(rule)
+    suspend fun deleteByChannel(channelId: String) = dao.deleteByChannel(channelId)
+    suspend fun replaceForChannel(channelId: String, rows: List<RuleRow>) =
+        dao.replaceForChannel(channelId, rows)
 }

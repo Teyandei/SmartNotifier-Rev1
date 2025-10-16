@@ -3,115 +3,70 @@ package com.example.smartnotifier
 import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
-import androidx.core.net.toUri
-import java.io.File
-import java.nio.charset.Charset
+import com.example.smartnotifier.data.db.DatabaseProvider
+import com.example.smartnotifier.data.db.RuleRow
+import com.example.smartnotifier.data.repo.ChannelRulesRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 object ChannelRulesStore {
 
-    private val UTF8: Charset = Charsets.UTF_8
-
-    // For Debug
-    private fun debugLogFile(context: Context, channelId: String) {
-        val f = File(context.filesDir, "$channelId.csv")
-        android.util.Log.i(
-            "RulesStore",
-            "pkg=${context.packageName}, filesDir=${context.filesDir.absolutePath}, " +
-                    "path=${f.absolutePath}, exists=${f.exists()}, size=${if (f.exists()) f.length() else -1}"
-        )
+    private fun repository(context: Context): ChannelRulesRepository {
+        return ChannelRulesRepository(DatabaseProvider.get(context))
     }
 
-    // 例: "jawbone" → "jawbone.csv"（実体はTSV）
-    private fun fileFor(context: Context, channelId: String): File =
-        File(context.filesDir, "${channelId}.csv")
-
-    /**
-     * 初期化：ファイルが無ければ10行の雛形を作る
-     */
     fun ensureInitialized(
         context: Context,
         channelId: String,
         initialRows: List<RuleRow> = defaultTenRows()
     ) {
-        debugLogFile(context, channelId)
-        val f = fileFor(context, channelId)
-        if (!f.exists()) {
-            saveAll(context, channelId, initialRows)
-        }
-    }
-
-    /**
-     * 読み込み：TSVをList<RuleRow>に
-     *（不正行はスキップ。タブは基本使わない前提。タイトルにタブが入る可能性がある場合は事前置換推奨）
-     */
-    fun loadAll(context: Context, channelId: String): MutableList<RuleRow> {
-        val f = fileFor(context, channelId)
-        if (!f.exists()) return mutableListOf()
-        val lines = f.readLines(UTF8)
-        val out = mutableListOf<RuleRow>()
-        for (line in lines) {
-            if (line.isBlank()) continue
-            val parts = line.split('\t', limit = 3) // タブ区切り、2列に限定
-            if (parts.size == 3) {
-                val uri = parts[1].takeIf { it.isNotBlank() }
-                    ?.let { runCatching { it.toUri() }.getOrNull() }
-                    ?: Uri.EMPTY
-                out += RuleRow(parts[0], uri, parts[2])
+        runBlocking(Dispatchers.Main.immediate) {
+            val repo = repository(context)
+            withContext(Dispatchers.IO) {
+                val current = repo.getByChannel(channelId)
+                if (current.isEmpty()) {
+                    val rows = initialRows.map { it.copy(channelId = channelId, id = 0L) }
+                    repo.replaceForChannel(channelId, rows)
+                }
             }
         }
-        return out
     }
 
-    /**
-     * 保存：List<RuleRow>をTSVに（アトミックセーブ）
-     */
+    fun loadAll(context: Context, channelId: String): MutableList<RuleRow> =
+        runBlocking(Dispatchers.Main.immediate) {
+            val repo = repository(context)
+            val rows = withContext(Dispatchers.IO) {
+                repo.getByChannel(channelId)
+            }
+            rows.toMutableList()
+        }
+
     fun saveAll(context: Context, channelId: String, rows: List<RuleRow>) {
-        val f = fileFor(context, channelId)
-        val tmp = File(f.parentFile, f.name + ".tmp")
-        val content = buildString {
-            rows.forEach { row ->
-                // タブや改行は使わない前提。混入が心配なら置換を推奨（例：\t→␉、\n→␤）
-                append(row.title)
-                append('\t')
-                append(
-                    if (row.soundKey == Uri.EMPTY) {
-                        ""
-                    } else {
-                        row.soundKey.toString()
-                    }
-                )
-                append('\t')
-                append(row.enable)
-                append('\n')
+        runBlocking(Dispatchers.Main.immediate) {
+            val repo = repository(context)
+            withContext(Dispatchers.IO) {
+                val normalized = rows.map { row ->
+                    row.copy(channelId = channelId)
+                }
+                repo.replaceForChannel(channelId, normalized)
             }
         }
-        tmp.writeText(content, UTF8)
-        if (f.exists()) f.delete()
-        tmp.renameTo(f)
     }
 
-    /**
-     * 雛形10行（必要に応じて好きな文面に変更）
-     */
     fun defaultTenRows(): List<RuleRow> {
-
-        // 現在設定されているデフォルト通知音のUriを取得します
         val defaultNotificationUri: Uri =
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: Uri.EMPTY
 
-        // リストの生成と返却
-        return listOf(
-            // RuleRowの第2パラメータに Uri オブジェクトを渡します
-            RuleRow("slot1", defaultNotificationUri, ""),
-            RuleRow("slot2", defaultNotificationUri, ""),
-            RuleRow("slot3", defaultNotificationUri, ""),
-            RuleRow("slot4", defaultNotificationUri, ""),
-            RuleRow("slot5", defaultNotificationUri, ""),
-            RuleRow("slot6", defaultNotificationUri, ""),
-            RuleRow("slot7", defaultNotificationUri, ""),
-            RuleRow("slot8", defaultNotificationUri, ""),
-            RuleRow("slot9", defaultNotificationUri, ""),
-            RuleRow("slot10", defaultNotificationUri, "")
-        )
+        return List(10) { index ->
+            RuleRow(
+                channelId = ChannelID.ChannelId.CHATGPT_TASK.toString(),
+                appPackage = null,
+                soundKey = defaultNotificationUri,
+                enabled = false,
+                priority = 0,
+                searchText = "slot${index + 1}"
+            )
+        }
     }
 }
