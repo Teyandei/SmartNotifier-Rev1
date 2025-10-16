@@ -1,6 +1,8 @@
 ```gitignore
 # Android Studio / IntelliJ
 .idea/
+!.idea/codeStyles
+!.idea/inspectionProfiles
 *.iml
 
 # Build outputs
