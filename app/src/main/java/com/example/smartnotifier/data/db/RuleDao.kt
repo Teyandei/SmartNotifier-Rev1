@@ -1,0 +1,33 @@
+package com.example.smartnotifier.data.db
+
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
+import androidx.room.Update
+
+@Dao
+interface RuleDao {
+
+    @Query("SELECT * FROM rules WHERE channelId = :channelId ORDER BY priority DESC, id ASC")
+    suspend fun getByChannel(channelId: String): List<RuleRow>
+
+    @Query("SELECT * FROM rules WHERE appPackage = :pkg AND enabled = 1 ORDER BY priority DESC, id ASC")
+    suspend fun getEnabledByPackage(pkg: String): List<RuleRow>
+
+    @Insert(onConflict = OnConflictStrategy.Companion.REPLACE)
+    suspend fun insert(rule: RuleRow): Long
+
+    @Update
+    suspend fun update(rule: RuleRow)
+
+    @Delete
+    suspend fun delete(rule: RuleRow)
+
+    @Transaction
+    suspend fun upsert(rule: RuleRow) {
+        if (rule.id == 0L) insert(rule) else update(rule)
+    }
+}

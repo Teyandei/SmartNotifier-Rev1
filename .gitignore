@@ -1,7 +1,14 @@
 ```gitignore
 # Android Studio / IntelliJ
 .idea/
+!.idea/codeStyles
+!.idea/inspectionProfiles
 *.iml
+
+# バイナリファイル
+*.bin
+*.dat
+*.tmp
 
 # Build outputs
 /build/
@@ -10,6 +17,7 @@ app/build/
 # Gradle
 .gradle/
 local.properties
+build/
 
 # Logs
 *.log
@@ -17,9 +25,16 @@ local.properties
 # OS-specific
 .DS_Store
 Thumbs.db
+*.swp
+*.bak
+*.orig
+*.rej
 
 # Kotlin build caches
 out/
+.classpath
+.project
+.settings/
 
 # Android test artifacts
 captures/
