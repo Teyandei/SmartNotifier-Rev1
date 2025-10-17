@@ -34,6 +34,7 @@ out/
 .classpath
 .project
 .settings/
+.kotlin
 
 # Android test artifacts
 captures/
