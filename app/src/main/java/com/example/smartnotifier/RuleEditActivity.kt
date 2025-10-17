@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -31,27 +32,33 @@ class RuleEditActivity : AppCompatActivity() {
                 // ★FIX: Activity の intent ではなく、結果の intent を使う
                 val dataIntent = result.data
 
-                // 型付き getParcelableExtra で安全に取得
-                val uri: Uri? = IntentCompat.getParcelableExtra(
-                    dataIntent,
-                    RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
-                    Uri::class.java
-                )
+                if (dataIntent != null) {
+                    // 型付き getParcelableExtra で安全に取得
+                    val uri: Uri? = IntentCompat.getParcelableExtra(
+                        dataIntent,
+                        RingtoneManager.EXTRA_RINGTONE_PICKED_URI,
+                        Uri::class.java
+                    )
 
-                // デフォルト着信音を選んだ場合は DEFAULT_NOTIFICATION_URI が来ることがある
-                val picked = uri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                    // デフォルト着信音を選んだ場合は DEFAULT_NOTIFICATION_URI が来ることがある
+                    val picked =
+                        uri ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-                if (picked != null) {
-                    // 表示名に変換
-                    val title = RingtoneManager.getRingtone(this, picked)?.getTitle(this) ?: picked.toString()
+                    if (picked != null) {
+                        // 表示名に変換
+                        val title = RingtoneManager.getRingtone(this, picked)?.getTitle(this)
+                            ?: picked.toString()
 
-                    // 画面へ反映
-                    soundEdits[pickIndex].setText(title)
+                        // 画面へ反映
+                        soundEdits[pickIndex].setText(title)
 
-                    // rowsへ保存（保存ボタン押下でCSVへ反映）
-                    rows[pickIndex] = rows[pickIndex].copy(soundKey = picked)
+                        // rowsへ保存（保存ボタン押下でCSVへ反映）
+                        rows[pickIndex] = rows[pickIndex].copy(soundKey = picked)
 
-                    setDirty(true)
+                        setDirty(true)
+                    }
+                } else {
+                    Log.w("RuleEditActivity", "dataIntent was null")
                 }
             }
             pickIndex = -1
