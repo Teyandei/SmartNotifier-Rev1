@@ -1,4 +1,3 @@
-```gitignore
 # Android Studio / IntelliJ
 .idea/
 !.idea/codeStyles

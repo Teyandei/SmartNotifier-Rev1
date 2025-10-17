@@ -5,11 +5,11 @@ import android.app.NotificationManager
 import android.content.Context
 import android.provider.Settings
 import android.content.Intent
-import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
+import android.media.RingtoneManager
+import android.net.Uri
 import com.google.android.material.switchmaterial.SwitchMaterial
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
 
         ensureChannels(this) // ← 先にチャンネル作成
 
-        ChannelRulesStore.ensureInitialized(this, ChannelId.CHATGPT_TASK.id)
+        ChannelRulesStore.ensureInitialized(this, ChannelID.ChannelId.CHATGPT_TASK.id)
         setDisplayUnit()
 
         val btn: Button = findViewById(R.id.openRuleEdit)
@@ -46,19 +46,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setDisplayUnit() {
-        val rows = ChannelRulesStore.loadAll(this, ChannelId.CHATGPT_TASK.id)
+        val rows = ChannelRulesStore.loadAll(this, ChannelID.ChannelId.CHATGPT_TASK.id)
 
         fun bind(i: Int, patId: Int, sndId: Int, swId: Int) {
             val row = rows.getOrNull(i)
-            val soundName = row?.soundKey?.takeUnless { it == Uri.EMPTY }
-                ?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) ?: it.toString() }
-                ?: ""
-            findViewById<TextView>(patId).text  = row?.title.orEmpty()
-            findViewById<TextView>(sndId).text  = soundName
-            findViewById<SwitchMaterial>(swId).isChecked = when (row?.enable?.lowercase()) {
-                "1","true","on","yes" -> true
-                else -> false
+            val soundUri = row?.soundKey ?: Uri.EMPTY
+            val soundName = if (soundUri == Uri.EMPTY) {
+                ""
+            } else {
+                RingtoneManager.getRingtone(this, soundUri)?.getTitle(this) ?: soundUri.toString()
             }
+            findViewById<TextView>(patId).text = row?.searchText.orEmpty()
+            findViewById<TextView>(sndId).text = soundName
+            findViewById<SwitchMaterial>(swId).isChecked = row?.enabled == true
         }
 
         bind(0, R.id.pattern1, R.id.soundKey1, R.id.enable1)
@@ -80,8 +80,8 @@ class MainActivity : AppCompatActivity() {
                 val cur = rows.getOrNull(index) ?: return@setOnCheckedChangeListener
 
                 // 1) TSV更新
-                rows[index] = cur.copy(enable = if (isChecked) "1" else "0")
-                ChannelRulesStore.saveAll(this, ChannelId.CHATGPT_TASK.id, rows)
+                rows[index] = cur.copy(enabled = isChecked)
+                ChannelRulesStore.saveAll(this, ChannelID.ChannelId.CHATGPT_TASK.id, rows)
 
                 // 2) OFF→ON になり、まだ通知アクセスが無いときは誘導
                 if (isChecked && !hasNotificationAccess()) {
@@ -106,9 +106,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun ensureChannels(context: Context) {
-        val nm = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val ch = NotificationChannel(
-            ChannelId.CHATGPT_TASK.id,
+            ChannelID.ChannelId.CHATGPT_TASK.id,
             "ChatGPTタスク通知",
             NotificationManager.IMPORTANCE_DEFAULT
         )

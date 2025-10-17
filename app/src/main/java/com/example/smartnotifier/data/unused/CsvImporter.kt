@@ -1,4 +1,4 @@
-package com.example.smartnotifier.data.migration
+package com.example.smartnotifier.data.unused
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers
@@ -16,18 +16,18 @@ object CsvImporter {
         if (dataDir.exists()) {
             dataDir.listFiles { f -> f.extension == "csv" }?.forEach { csv ->
                 // TODO: 実CSV仕様に合わせてパース
-                // 例: channelId はファイル名から、行は "appPackage,soundUri,enabled,priority,note"
+                // 例: channelId はファイル名から、行は "appPackage,soundUri,enabled,priority,searchText"
                 val channelId = csv.nameWithoutExtension
                 csv.useLines { lines ->
                     lines.forEach { line ->
                         val cols = line.split(',')
                         val row = RuleRow(
                             channelId = channelId,
-                            appPackage = cols.getOrNull(0) ?: return@forEach,
+                            appPackage = cols.getOrNull(0),
                             soundKey  = cols.getOrNull(1)?.takeIf { it.isNotBlank() }?.let { android.net.Uri.parse(it) },
                             enabled   = cols.getOrNull(2)?.toBooleanStrictOrNull() ?: true,
                             priority  = cols.getOrNull(3)?.toIntOrNull() ?: 0,
-                            note      = cols.getOrNull(4)
+                            searchText = cols.getOrNull(4)
                         )
                         db.ruleDao().upsert(row)
                     }
