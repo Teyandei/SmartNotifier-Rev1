@@ -55,5 +55,10 @@ dependencies {
     implementation("androidx.room:room-runtime:${room_version}")
     implementation("androidx.room:room-ktx:${room_version}")
     ksp("androidx.room:room-compiler:${room_version}")
-
+// ViewModelのライフサイクル拡張機能 (viewModelScopeを提供)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+// (FragmentやActivityで lifecycleScope を使うために、これも必要かもしれません)
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
+// コルーチン自体のライブラリ (通常は自動で含まれるが念のため)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }

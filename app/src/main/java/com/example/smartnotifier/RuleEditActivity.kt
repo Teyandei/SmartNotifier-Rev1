@@ -10,17 +10,37 @@ import android.text.TextWatcher
 import android.util.Log
 import android.widget.EditText
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.IntentCompat
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.example.smartnotifier.data.db.RuleRow
+import kotlinx.coroutines.launch
+import kotlin.getValue
 
 class RuleEditActivity : AppCompatActivity() {
+    private val viewModel: RuleEditViewModel by viewModels {
+        // ViewModelProvider.Factoryの実装
+        object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            // 修正後の正しいシグネチャ： T の制約を ViewModel に戻す
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                // RuleEditViewModelを生成し、依存関係（ChannelRulesStore）を渡す
+                // RuleEditViewModelは AndroidViewModel を継承しているため、このキャストは安全です。
+                return RuleEditViewModel(application, ChannelRulesStore) as T
+            }
+        }
+    }
+
     private lateinit var btnSave: MaterialButton
     private var dirty = false
 
     // 表示用のローカルコピー（保存まではここを書き換える）
-    private lateinit var rows: MutableList<RuleRow>
+    private var rulesRowsCache: MutableList<RuleRow> = mutableListOf()
+
     private lateinit var lastValidSearchTexts: MutableList<String>
     private var isRestoringTitle = false
 
@@ -52,8 +72,8 @@ class RuleEditActivity : AppCompatActivity() {
                         // 画面へ反映
                         soundEdits[pickIndex].setText(title)
 
-                        // rowsへ保存（保存ボタン押下でCSVへ反映）
-                        rows[pickIndex] = rows[pickIndex].copy(soundKey = picked)
+                        // キャッシュへ保存（保存ボタン押下でDB反映）
+                        rulesRowsCache[pickIndex] = rulesRowsCache[pickIndex].copy(soundKey = picked)
 
                         setDirty(true)
                     }
@@ -64,8 +84,9 @@ class RuleEditActivity : AppCompatActivity() {
             pickIndex = -1
         }
 
-
-    // 3項目分の View 参照（4〜10を増やすなら配列に追加）
+    /*
+        EditText View 参照
+     */
     private val titleEdits by lazy {
         arrayOf<EditText>(
             findViewById(R.id.title1),
@@ -78,7 +99,7 @@ class RuleEditActivity : AppCompatActivity() {
             findViewById(R.id.title8),
             findViewById(R.id.title9),
             findViewById(R.id.title10)
-       )
+        )
     }
     private val soundEdits by lazy {
         arrayOf<EditText>(
@@ -97,29 +118,67 @@ class RuleEditActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("RuleEditActivity", "onCreate arrived")
+
         setContentView(R.layout.activity_rule_edit)
 
-        btnSave = findViewById(R.id.btnSave)
-        val btnBack: MaterialButton = findViewById(R.id.btnBack)
+        lifecycleScope.launch {
+            // 監視対象を rulesData に変更
+            viewModel.rulesData.collect { rules ->
+                // RuleRowのリストをローカルキャッシュにディープコピーして保持
+                rulesRowsCache.clear()
+                rulesRowsCache.addAll(rules.map { it.copy() }) // 【重要】編集用にコピーを保持
 
-        // TSVを用意 → 読み込み
-        ChannelRulesStore.ensureInitialized(this, ChannelID.ChannelId.CHATGPT_TASK.id)
-        rows = ChannelRulesStore.loadAll(this, ChannelID.ChannelId.CHATGPT_TASK.id)
-        lastValidSearchTexts = MutableList(titleEdits.size) { index ->
-            rows.getOrNull(index)?.searchText.orEmpty()
+                // 画面の各UIコンポーネントにデータをバインド
+                setDisplayUnit(rulesRowsCache)
+            }
         }
 
-        // 初期表示：タイトルとサウンド名（soundKeyはURI想定→タイトルに変換）
-        for (i in titleEdits.indices) {
-            val row = rows.getOrNull(i) ?: continue
-            val initialText = row.searchText.orEmpty()
-            titleEdits[i].setText(initialText)
-            lastValidSearchTexts[i] = initialText
+        // 保存
+        btnSave = findViewById(R.id.btnSave)
+        // 【★修正点】btnSave のリスナー処理
+        btnSave.setOnClickListener {
+            // ViewModelのDB更新関数を呼び出し、編集済みキャッシュを渡す
+            viewModel.updateByCannel(ChannelID.ChannelId.CHATGPT_TASK.id, rulesRowsCache)
 
-            val display = soundDisplayName(row.soundKey)
-            soundEdits[i].setText(display)
+            // 保存完了後、保存ボタンを非活性化する。RuleActivityは戻るボタンでのみ終了する。
+            setDirty(false)
+        }
 
-            // 編集検知：タイトル
+        // 戻る
+        val btnBack: MaterialButton = findViewById(R.id.btnBack)
+        btnBack.setOnClickListener {
+            if (!dirty) {
+                finish()
+            } else {
+                AlertDialog.Builder(this)
+                    .setMessage("変更した内容は反映されません。よろしいですか？")
+                    .setPositiveButton("はい") { _, _ -> finish() }
+                    .setNegativeButton("いいえ", null)
+                    .show()
+            }
+        }
+        Log.d("RuleEditActivity", "onCreate end")
+    }
+
+    fun setDisplayUnit(rules: List<RuleRow>) {
+        val textToDisplay = if (rules.isEmpty()) {
+            "データなし"
+        } else {
+            rules.joinToString("\n") {
+                "Search: ${it.searchText}, Key: ${it.soundKey}, Enable: ${it.enabled}"
+            }
+        }
+        Log.d("RuleEditActivity", textToDisplay)
+        if (rules.isEmpty()) {
+            Log.d("RuleEditActivity", "setDisplayUnit empty end")
+            return
+        }
+
+        // ★ データ設定 DBからデータを取得した後ですべき処理
+        fun bind(i: Int) {
+            val searchText = rules[i].searchText ?: "N/A"
+            titleEdits[i].setText(searchText)
             titleEdits[i].addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
                     if (isRestoringTitle) {
@@ -141,39 +200,38 @@ class RuleEditActivity : AppCompatActivity() {
                     }
 
                     lastValidSearchTexts[i] = text
-                    rows[i] = rows[i].copy(searchText = text)
+                    rulesRowsCache[i] = rulesRowsCache[i].copy(searchText = text)
                     setDirty(true)
                 }
                 override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             })
 
-            // 通知音欄：タップでピッカー
+            val soundName = RingtoneManager.getRingtone(this, rules[i].soundKey)?.getTitle(this) ?: "Undefined"
+            soundEdits[i].setText(soundName)
+            // OnClickListener の修正
             soundEdits[i].setOnClickListener {
-                pickIndex = i
-                launchPicker(rows[i].soundKey?.takeIf { it != Uri.EMPTY })
+                pickIndex = i // Activityのプロパティにインデックスを保持
+                // ローカルのキャッシュ（rulesRowsCache）にアクセス
+                launchPicker(rulesRowsCache[i].soundKey?.takeIf { it != Uri.EMPTY })
             }
         }
+        bind(0)
+        bind(1)
+        bind(2)
+        bind(3)
+        bind(4)
+        bind(5)
+        bind(6)
+        bind(7)
+        bind(8)
+        bind(9)
 
-        // 保存
-        btnSave.setOnClickListener {
-            // enable は編集していないので既存値を保持
-            ChannelRulesStore.saveAll(this, ChannelID.ChannelId.CHATGPT_TASK.id, rows)
-            setDirty(false)
-        }
+        // 編集前の状態（lastValidSearchTexts）も初期化
+        lastValidSearchTexts = rules.map { it.searchText.orEmpty() }.toMutableList()
 
-        // 戻る
-        btnBack.setOnClickListener {
-            if (!dirty) {
-                finish()
-            } else {
-                AlertDialog.Builder(this)
-                    .setMessage("変更した内容は反映されません。よろしいですか？")
-                    .setPositiveButton("はい") { _, _ -> finish() }
-                    .setNegativeButton("いいえ", null)
-                    .show()
-            }
-        }
+        // 保存ボタンの状態をリセット
+        setDirty(false)
     }
 
     private fun setDirty(v: Boolean) {
@@ -191,13 +249,5 @@ class RuleEditActivity : AppCompatActivity() {
             }
         }
         pickSound.launch(intent)
-    }
-
-    // URI or 任意のキーから表示名を作る
-    private fun soundDisplayName(key: Uri?): String {
-        if (key == null || key == Uri.EMPTY) return ""  // 未設定
-        return runCatching {
-            RingtoneManager.getRingtone(this, key)?.getTitle(this)
-        }.getOrNull() ?: key.toString()
     }
 }

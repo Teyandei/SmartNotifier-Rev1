@@ -11,7 +11,7 @@ data class RuleRow(
     val channelId: String,
     val appPackage: String? = null,
     val soundKey: Uri? = null,          // Uri をそのまま扱える（Converterで保存）
-    val enabled: Boolean = true,
+    val enabled: Boolean = false,
     val priority: Int = 0,
     @ColumnInfo(name = "note")
     val searchText: String? = null
