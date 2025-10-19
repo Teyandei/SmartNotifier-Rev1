@@ -20,46 +20,80 @@ import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.smartnotifier.data.db.UriConverters
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.repeatOnLifecycle
 
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels {
-        // ViewModelProvider.Factoryの実装
         object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            // 修正後の正しいシグネチャ： T の制約を ViewModel に戻す
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                // MainViewModelを生成し、依存関係（ChannelRulesStore）を渡す
-                // MainViewModelは AndroidViewModel を継承しているため、このキャストは安全です。
                 return MainViewModel(application, ChannelRulesStore) as T
             }
         }
     }
+
+    // A helper data class to hold the views for a single rule row
+    private data class RuleRowViews(
+        val pattern: TextView,
+        val sound: TextView,
+        val enable: SwitchMaterial
+    )
+
+    // Pre-fetched views to avoid repeated findViewById calls
+    private val ruleRowViews = mutableListOf<RuleRowViews>()
+
+    // UriConverters can be a member variable as it's stateless
+    private val uriConverters = UriConverters()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        Log.d("MainActivity", "onCreate arrived")
         setContentView(R.layout.activity_main)
-        Log.d("MainActivity", "setContentView end")
 
-        ensureChannels(this@MainActivity) // ← 先にチャンネル作成
-        Log.d("MainActivity", "ensureChannels end")
+        // Find all views once and store them
+        initializeRuleViews()
+
+        ensureChannels(this)
 
         lifecycleScope.launch {
-            // 監視対象を rulesData に変更
-            viewModel.rulesData.collect { displayList ->
-                Log.d("MainActivity", "UI更新データ受信: ルール数=${displayList.size}")
-
-                // setDisplayUnit List<RuleDisplayItem> を受け取る
-                setDisplayUnit(displayList)
+            // Use repeatOnLifecycle for better lifecycle management
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.rulesData.collect { displayList ->
+                    Log.d("MainActivity", "UI更新データ受信: ルール数=${displayList.size}")
+                    setDisplayUnit(displayList)
+                }
             }
         }
 
-        val btn: Button = findViewById(R.id.openRuleEdit)
-        btn.setOnClickListener {
+        findViewById<Button>(R.id.openRuleEdit).setOnClickListener {
             startActivity(Intent(this, RuleEditActivity::class.java))
         }
-        Log.d("MainActivity", "onCreate end")
+    }
+
+    private fun initializeRuleViews() {
+        val ids = listOf(
+            Triple(R.id.pattern1, R.id.soundKey1, R.id.enable1),
+            Triple(R.id.pattern2, R.id.soundKey2, R.id.enable2),
+            Triple(R.id.pattern3, R.id.soundKey3, R.id.enable3),
+            Triple(R.id.pattern4, R.id.soundKey4, R.id.enable4),
+            Triple(R.id.pattern5, R.id.soundKey5, R.id.enable5),
+            Triple(R.id.pattern6, R.id.soundKey6, R.id.enable6),
+            Triple(R.id.pattern7, R.id.soundKey7, R.id.enable7),
+            Triple(R.id.pattern8, R.id.soundKey8, R.id.enable8),
+            Triple(R.id.pattern9, R.id.soundKey9, R.id.enable9),
+            Triple(R.id.pattern10, R.id.soundKey10, R.id.enable10)
+        )
+
+        ids.forEach { (patId, sndId, swId) ->
+            ruleRowViews.add(
+                RuleRowViews(
+                    pattern = findViewById(patId),
+                    sound = findViewById(sndId),
+                    enable = findViewById(swId)
+                )
+            )
+        }
     }
 
     private fun hasNotificationAccess(): Boolean {
@@ -71,61 +105,33 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setDisplayUnit(rules: List<RuleDisplayItem>) {
-        val uriConverters = UriConverters()
-        // 1. まず、改行で個々のルール（行）に分割する
-        // 例: リストビューやテーブルにデータを設定する
-        // TextViewなどに単一行で表示する場合は、デバッグ用に joinToString などを使えます
-        val textToDisplay = if (rules.isEmpty()) {
-            "データなし"
-        } else {
-            rules.joinToString("\n") {
-                "Search: ${it.searchText}, Key: ${it.soundKeyDisplay}, Enable: ${it.isEnabled}"
-            }
-        }
-        Log.d("MainActivity",textToDisplay)
+        ruleRowViews.forEachIndexed { index, views ->
+            val rule = rules.getOrNull(index)
 
-        fun bind(i: Int, patId: Int, sndId: Int, swId: Int) {
-            val row = rules.getOrNull(i)
-            val soundUri = uriConverters.toUri(row?.soundKeyDisplay) ?: Uri.EMPTY
+            val soundUri = uriConverters.toUri(rule?.soundKeyDisplay) ?: Uri.EMPTY
             val soundName = if (soundUri == Uri.EMPTY) {
                 ""
             } else {
                 RingtoneManager.getRingtone(this, soundUri)?.getTitle(this) ?: "Undefined"
             }
-            findViewById<TextView>(patId).text = row?.searchText.orEmpty()
-            findViewById<TextView>(sndId).text = soundName
 
-            val sw = findViewById<SwitchMaterial>(swId)
+            views.pattern.text = rule?.searchText.orEmpty()
+            views.sound.text = soundName
 
-            // 1. **無限ループ回避のための最重要処理:** リスナーを一旦解除する
-            //    これにより、次の行で sw.isChecked を設定してもリスナーは発火しない
-            sw.setOnCheckedChangeListener(null)
+            // This pattern is important to prevent infinite loops.
+            // 1. Remove the listener.
+            views.enable.setOnCheckedChangeListener(null)
+            // 2. Set the state from the data.
+            views.enable.isChecked = rule?.isEnabled == true
+            // 3. Re-add the listener for user interactions.
+            views.enable.setOnCheckedChangeListener { _, isChecked ->
+                viewModel.updateRuleEnabled(index, isChecked)
 
-            // 2. データに基づいてスイッチの状態を設定
-            sw.isChecked = row?.isEnabled == true
-
-            // 3. 新しいリスナーを再設定（ユーザー操作時のみ発火する）
-            sw.setOnCheckedChangeListener { _, isChecked ->
-                // スイッチが押されたら、MainActivityではなくViewModelの関数を呼ぶ
-                viewModel.updateRuleEnabled(i, isChecked) // <--- ViewModelに処理を委譲
-
-                // OFF→ON になり、まだ通知アクセスが無いときは誘導
                 if (isChecked && !hasNotificationAccess()) {
                     promptNotificationAccess()
                 }
             }
         }
-
-        bind(0, R.id.pattern1, R.id.soundKey1, R.id.enable1)
-        bind(1, R.id.pattern2, R.id.soundKey2, R.id.enable2)
-        bind(2, R.id.pattern3, R.id.soundKey3, R.id.enable3)
-        bind(3, R.id.pattern4, R.id.soundKey4, R.id.enable4)
-        bind(4, R.id.pattern5, R.id.soundKey5, R.id.enable5)
-        bind(5, R.id.pattern6, R.id.soundKey6, R.id.enable6)
-        bind(6, R.id.pattern7, R.id.soundKey7, R.id.enable7)
-        bind(7, R.id.pattern8, R.id.soundKey8, R.id.enable8)
-        bind(8, R.id.pattern9, R.id.soundKey9, R.id.enable9)
-        bind(9, R.id.pattern10, R.id.soundKey10, R.id.enable10)
     }
 
     fun ensureChannels(context: Context) {
@@ -140,8 +146,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-
-        // ViewModelにデータの再ロードを指示する
         viewModel.reloadData()
     }
 }
