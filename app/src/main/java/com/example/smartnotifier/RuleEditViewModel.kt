@@ -22,7 +22,7 @@ class RuleEditViewModel (application: Application, private val rulesStore: Chann
             try {
                 val ruleRows: List<RuleRow> = rulesStore.getByChannel(
                     getApplication(),
-                    ChannelID.ChannelId.CHATGPT_TASK.id
+                    ChannelID.CHATGPT_TASK
                 )
 
                 // StateFlowを更新

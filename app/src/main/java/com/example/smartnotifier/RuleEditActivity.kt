@@ -139,7 +139,7 @@ class RuleEditActivity : AppCompatActivity() {
         // 【★修正点】btnSave のリスナー処理
         btnSave.setOnClickListener {
             // ViewModelのDB更新関数を呼び出し、編集済みキャッシュを渡す
-            viewModel.updateByCannel(ChannelID.ChannelId.CHATGPT_TASK.id, rulesRowsCache)
+            viewModel.updateByCannel(ChannelID.CHATGPT_TASK, rulesRowsCache)
 
             // 保存完了後、保存ボタンを非活性化する。RuleActivityは戻るボタンでのみ終了する。
             setDirty(false)

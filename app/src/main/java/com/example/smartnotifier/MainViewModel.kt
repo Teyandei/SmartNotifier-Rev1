@@ -27,7 +27,7 @@ class MainViewModel(application: Application, private val rulesStore: ChannelRul
                 withTimeout(5_000) {
                     rulesStore.ensureInitialized(
                         getApplication(), // AndroidViewModelからApplication Contextを取得
-                        ChannelID.ChannelId.CHATGPT_TASK.id
+                        ChannelID.CHATGPT_TASK
                     )
                     Log.d("MainViewModel", "ChannelRulesStore.ensureInitialized end")
                 }
@@ -50,7 +50,7 @@ class MainViewModel(application: Application, private val rulesStore: ChannelRul
                 // 1. 現在の全ルールをDBから再取得（最新のIDを持つデータが必要）
                 val currentRuleRows = rulesStore.getByChannel(
                     getApplication(),
-                    ChannelID.ChannelId.CHATGPT_TASK.id
+                    ChannelID.CHATGPT_TASK
                 )
 
                 // 2. 対象のルールを取得し、状態をコピーして変更
@@ -76,7 +76,7 @@ class MainViewModel(application: Application, private val rulesStore: ChannelRul
     private suspend fun reloadRulesData() {
         val dataToDisplay: List<RuleRow> =  rulesStore.getByChannel(
             getApplication(),
-            ChannelID.ChannelId.CHATGPT_TASK.id
+            ChannelID.CHATGPT_TASK
         )
         // List<RuleDisplayItem> を取得
         val displayList = convertRulesToDisplayString(dataToDisplay)
@@ -111,7 +111,7 @@ class MainViewModel(application: Application, private val rulesStore: ChannelRul
 //    private suspend fun reloadRulesData() {
 //        val dataToDisplay: List<RuleRow> =  rulesStore.getByChannel(
 //            getApplication(),
-//            ChannelID.ChannelId.CHATGPT_TASK.id
+//            ChannelID.CHATGPT_TASK
 //        )
 //        _rulesData.value = convertRulesToDisplayString(dataToDisplay) // convertRulesToDisplayStringはList<RuleDisplayItem>を返すものとする
 //    }

@@ -137,7 +137,7 @@ class MainActivity : AppCompatActivity() {
     fun ensureChannels(context: Context) {
         val nm = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val ch = NotificationChannel(
-            ChannelID.ChannelId.CHATGPT_TASK.id,
+            ChannelID.CHATGPT_TASK,
             "ChatGPTタスク通知",
             NotificationManager.IMPORTANCE_DEFAULT
         )
