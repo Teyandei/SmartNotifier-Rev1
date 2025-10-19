@@ -10,7 +10,6 @@ import android.widget.Button
 import android.widget.TextView
 import android.media.RingtoneManager
 import android.net.Uri
-import android.util.Log
 import androidx.activity.viewModels
 import com.google.android.material.switchmaterial.SwitchMaterial
 import androidx.appcompat.app.AppCompatActivity
@@ -60,7 +59,6 @@ class MainActivity : AppCompatActivity() {
             // Use repeatOnLifecycle for better lifecycle management
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.rulesData.collect { displayList ->
-                    Log.d("MainActivity", "UI更新データ受信: ルール数=${displayList.size}")
                     setDisplayUnit(displayList)
                 }
             }

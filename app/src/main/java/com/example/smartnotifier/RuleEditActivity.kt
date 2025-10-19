@@ -118,8 +118,6 @@ class RuleEditActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("RuleEditActivity", "onCreate arrived")
-
         setContentView(R.layout.activity_rule_edit)
 
         lifecycleScope.launch {
@@ -158,20 +156,10 @@ class RuleEditActivity : AppCompatActivity() {
                     .show()
             }
         }
-        Log.d("RuleEditActivity", "onCreate end")
     }
 
     fun setDisplayUnit(rules: List<RuleRow>) {
-        val textToDisplay = if (rules.isEmpty()) {
-            "データなし"
-        } else {
-            rules.joinToString("\n") {
-                "Search: ${it.searchText}, Key: ${it.soundKey}, Enable: ${it.enabled}"
-            }
-        }
-        Log.d("RuleEditActivity", textToDisplay)
         if (rules.isEmpty()) {
-            Log.d("RuleEditActivity", "setDisplayUnit empty end")
             return
         }
 

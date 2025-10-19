@@ -40,8 +40,6 @@ class RuleEditViewModel (application: Application, private val rulesStore: Chann
     fun updateByCannel(channelId: String, ruleUpdate: MutableList<RuleRow>){
         viewModelScope.launch {
             try {
-                Log.d("RuleEditViewModel", "updateByCannel: Saving ${ruleUpdate.size} rows.")
-
                 // 【★修正点】ChannelRulesStoreの保存関数を呼び出す
                 rulesStore.saveByChannel(
                     getApplication(),

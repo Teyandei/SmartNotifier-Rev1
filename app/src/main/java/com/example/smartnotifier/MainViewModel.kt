@@ -29,7 +29,6 @@ class MainViewModel(application: Application, private val rulesStore: ChannelRul
                         getApplication(), // AndroidViewModelからApplication Contextを取得
                         ChannelID.CHATGPT_TASK
                     )
-                    Log.d("MainViewModel", "ChannelRulesStore.ensureInitialized end")
                 }
 
                 // StateFlowを更新

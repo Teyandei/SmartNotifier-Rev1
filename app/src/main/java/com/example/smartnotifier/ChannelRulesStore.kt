@@ -3,12 +3,10 @@ package com.example.smartnotifier
 import android.content.Context
 import android.media.RingtoneManager
 import android.net.Uri
-import android.util.Log
 import com.example.smartnotifier.data.db.DatabaseProvider
 import com.example.smartnotifier.data.db.RuleRow
 import com.example.smartnotifier.data.repo.ChannelRulesRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 object ChannelRulesStore {
@@ -22,15 +20,12 @@ object ChannelRulesStore {
         channelId: String,
         initialRows: List<RuleRow> = defaultTenRows()
     )  = withContext(Dispatchers.IO) {
-        Log.d("ChannelRulesStore", "ensureInitialized: start on ${Thread.currentThread().name}")
-
         val repo = repository(context)
         val current = repo.getByChannel(channelId)
         if (current.isEmpty()) {
             val rows = initialRows.map { it.copy(channelId = channelId, id = 0L) }
             repo.replaceForChannel(channelId, rows)
         }
-        Log.d("ChannelRulesStore", "ensureInitialized: end")
     }
 
     suspend fun getByChannel(context: Context, channelId: String) : List<RuleRow> {
@@ -39,12 +34,6 @@ object ChannelRulesStore {
             repo.getByChannel(channelId)
         }
         return rows
-    }
-    suspend fun loadAll(context: Context, channelId: String): List<RuleRow>
-    = withContext(Dispatchers.IO) {
-        Log.d("ChannelRulesStore", "loadAll start.")
-        val repo = repository(context)
-        repo.getByChannel(channelId)
     }
 
     suspend fun upsertRule(context: Context, rule: RuleRow) {
@@ -65,17 +54,15 @@ object ChannelRulesStore {
             }
             // ChannelRulesRepository の replaceForChannel が呼ばれ、DBが更新される
             repo.replaceForChannel(channelId, normalized)
-            Log.d("ChannelRulesStore", "saveByChannel end. Saved ${rows.size} rows for channel $channelId")
         }
     }
+
     fun defaultTenRows(): List<RuleRow> {
-        Log.d("ChannelRulesStore", "defaultTenRows: start on ${Thread.currentThread().name}")
         val defaultNotificationUri: Uri =
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: Uri.EMPTY
-        Log.d("ChannelRulesStore", "defaultNotificationUri = ${defaultNotificationUri}")
         return List(10) { index ->
             RuleRow(
-                channelId = ChannelID.ChannelId.CHATGPT_TASK.toString(),
+                channelId = ChannelID.CHATGPT_TASK,
                 appPackage = null,
                 soundKey = defaultNotificationUri,
                 enabled = false,
