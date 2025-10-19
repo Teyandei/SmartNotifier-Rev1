@@ -15,56 +15,44 @@ object ChannelRulesStore {
         return ChannelRulesRepository(DatabaseProvider.get(context))
     }
 
+    // ヘルパー関数を導入してIOコンテキストでの処理を抽象化
+    private suspend fun <T> onRepo(
+        context: Context,
+        block: suspend (ChannelRulesRepository) -> T
+    ): T = withContext(Dispatchers.IO) {
+        block(repository(context))
+    }
+
     suspend fun ensureInitialized(
         context: Context,
         channelId: String,
         initialRows: List<RuleRow> = defaultTenRows()
-    )  = withContext(Dispatchers.IO) {
-        val repo = repository(context)
-        val current = repo.getByChannel(channelId)
-        if (current.isEmpty()) {
+    ) = onRepo(context) { repo ->
+        if (repo.getByChannel(channelId).isEmpty()) {
             val rows = initialRows.map { it.copy(channelId = channelId, id = 0L) }
             repo.replaceForChannel(channelId, rows)
         }
     }
 
-    suspend fun getByChannel(context: Context, channelId: String) : List<RuleRow> {
-        val repo = repository(context)
-        val rows = withContext(Dispatchers.IO) {
-            repo.getByChannel(channelId)
-        }
-        return rows
+    suspend fun getByChannel(context: Context, channelId: String): List<RuleRow> = onRepo(context) {
+        it.getByChannel(channelId)
     }
 
-    suspend fun upsertRule(context: Context, rule: RuleRow) {
-        withContext(Dispatchers.IO) {
-            repository(context).upsert(rule)
-        }
+    suspend fun upsertRule(context: Context, rule: RuleRow) = onRepo(context) {
+        it.upsert(rule)
     }
 
-    // 【★修正点】saveAll を削除または saveByChannel に置き換え、suspendファンクションにする
-    // RuleEditViewModelから呼ばれる saveByChannel
-    suspend fun saveByChannel(context: Context, channelId: String, rows: List<RuleRow>) {
-        withContext(Dispatchers.IO) {
-            val repo = repository(context)
-            val normalized = rows.map { row ->
-                // DBに保存する前に、念のため channelId が正しいことを保証し、
-                // 新規行の場合に id=0Lとなるようにする。（※ id=0LのチェックはRuleDaoのupsertで対応済みなら不要）
-                row.copy(channelId = channelId)
-            }
-            // ChannelRulesRepository の replaceForChannel が呼ばれ、DBが更新される
-            repo.replaceForChannel(channelId, normalized)
-        }
+    suspend fun saveByChannel(context: Context, channelId: String, rows: List<RuleRow>) = onRepo(context) { repo ->
+        val normalized = rows.map { it.copy(channelId = channelId) }
+        repo.replaceForChannel(channelId, normalized)
     }
 
-    fun defaultTenRows(): List<RuleRow> {
-        val defaultNotificationUri: Uri =
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: Uri.EMPTY
+    private fun defaultTenRows(): List<RuleRow> {
         return List(10) { index ->
             RuleRow(
                 channelId = ChannelID.CHATGPT_TASK,
                 appPackage = null,
-                soundKey = defaultNotificationUri,
+                soundKey = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: Uri.EMPTY,
                 enabled = false,
                 priority = 0,
                 searchText = "slot${index + 1}"
