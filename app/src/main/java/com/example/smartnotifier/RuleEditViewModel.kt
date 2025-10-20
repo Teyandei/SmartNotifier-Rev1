@@ -37,16 +37,19 @@ class RuleEditViewModel (application: Application, private val rulesStore: Chann
     }
 
     // 全ての内容をDBに保存
-    fun updateByCannel(channelId: String, ruleUpdate: MutableList<RuleRow>){
+    fun updateByChannel(channelId: String, ruleUpdate: List<RuleRow>){
         viewModelScope.launch {
             try {
-                // 【★修正点】ChannelRulesStoreの保存関数を呼び出す
+                // 保存する前に、各ルールに正しいlineNumber（インデックス）を割り当てる
+                val numberedRows = ruleUpdate.mapIndexed { index, rule ->
+                    rule.copy(lineNumber = index)
+                }
+
                 rulesStore.saveByChannel(
                     getApplication(),
-                    channelId,      // ChannelID.ChannelId の id (String) を渡す
-                    ruleUpdate
+                    channelId,
+                    numberedRows
                 )
-                // 保存完了後、Activity側で画面を閉じたい場合は、ここでStateFlowを使って通知することも可能
             } catch (t: Throwable) {
                 // タイムアウトやその他のエラー発生時
                 Log.e("RuleEditViewModel", "saveByChannel failed", t)

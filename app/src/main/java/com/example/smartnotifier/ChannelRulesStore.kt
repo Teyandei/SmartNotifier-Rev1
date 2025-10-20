@@ -50,12 +50,11 @@ object ChannelRulesStore {
     private fun defaultTenRows(): List<RuleRow> {
         return List(10) { index ->
             RuleRow(
-                channelId = ChannelID.CHATGPT_TASK,
-                appPackage = null,
+                channelId = "", // ensureInitializedで正しいIDが設定されるため、ここでは空
+                lineNumber = index,
+                searchText = "slot${index + 1}",
                 soundKey = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) ?: Uri.EMPTY,
-                enabled = false,
-                priority = 0,
-                searchText = "slot${index + 1}"
+                enabled = false // ユーザーの指示通りデフォルトはfalse
             )
         }
     }

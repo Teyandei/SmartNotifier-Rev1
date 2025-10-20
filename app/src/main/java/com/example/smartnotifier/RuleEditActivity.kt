@@ -134,10 +134,9 @@ class RuleEditActivity : AppCompatActivity() {
 
         // 保存
         btnSave = findViewById(R.id.btnSave)
-        // 【★修正点】btnSave のリスナー処理
         btnSave.setOnClickListener {
             // ViewModelのDB更新関数を呼び出し、編集済みキャッシュを渡す
-            viewModel.updateByCannel(ChannelID.CHATGPT_TASK, rulesRowsCache)
+            viewModel.updateByChannel(ChannelID.CHATGPT_TASK, rulesRowsCache)
 
             // 保存完了後、保存ボタンを非活性化する。RuleActivityは戻るボタンでのみ終了する。
             setDirty(false)
@@ -158,22 +157,21 @@ class RuleEditActivity : AppCompatActivity() {
         }
     }
 
-    fun setDisplayUnit(rules: List<RuleRow>) {
+    private fun setDisplayUnit(rules: List<RuleRow>) {
         if (rules.isEmpty()) {
             return
         }
 
-        // ★ データ設定 DBからデータを取得した後ですべき処理
-        fun bind(i: Int) {
-            val searchText = rules[i].searchText ?: "N/A"
+        rules.forEachIndexed { i, rule ->
+            if (i >= titleEdits.size) return@forEachIndexed // 安全装置
+
+            val searchText = rule.searchText ?: ""
             titleEdits[i].setText(searchText)
             titleEdits[i].addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
-                    if (isRestoringTitle) {
-                        return
-                    }
+                    if (isRestoringTitle) return
 
-                    val text = s?.toString().orEmpty()
+                    val text = s?.toString() ?: ""
                     if (text.isBlank()) {
                         val previous = lastValidSearchTexts[i]
                         isRestoringTitle = true
@@ -195,25 +193,13 @@ class RuleEditActivity : AppCompatActivity() {
                 override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             })
 
-            val soundName = RingtoneManager.getRingtone(this, rules[i].soundKey)?.getTitle(this) ?: "Undefined"
+            val soundName = RingtoneManager.getRingtone(this, rule.soundKey)?.getTitle(this) ?: "Undefined"
             soundEdits[i].setText(soundName)
-            // OnClickListener の修正
             soundEdits[i].setOnClickListener {
-                pickIndex = i // Activityのプロパティにインデックスを保持
-                // ローカルのキャッシュ（rulesRowsCache）にアクセス
+                pickIndex = i
                 launchPicker(rulesRowsCache[i].soundKey?.takeIf { it != Uri.EMPTY })
             }
         }
-        bind(0)
-        bind(1)
-        bind(2)
-        bind(3)
-        bind(4)
-        bind(5)
-        bind(6)
-        bind(7)
-        bind(8)
-        bind(9)
 
         // 編集前の状態（lastValidSearchTexts）も初期化
         lastValidSearchTexts = rules.map { it.searchText.orEmpty() }.toMutableList()
