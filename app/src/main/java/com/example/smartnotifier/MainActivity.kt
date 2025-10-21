@@ -1,26 +1,31 @@
 package com.example.smartnotifier
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.provider.Settings
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import android.media.RingtoneManager
 import android.net.Uri
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import com.google.android.material.switchmaterial.SwitchMaterial
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.smartnotifier.data.db.UriConverters
-import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.example.smartnotifier.data.db.UriConverters
+import com.google.android.material.switchmaterial.SwitchMaterial
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,30 +38,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // A helper data class to hold the views for a single rule row
-    private data class RuleRowViews(
-        val pattern: TextView,
-        val sound: TextView,
-        val enable: SwitchMaterial
-    )
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            // 権限が付与された。特に何もしなくても、ユーザーは次の操作を続けられる。
+        } else {
+            // 権限が拒否された。必要であれば、なぜ権限が必要かを説明するUIを表示する。
+        }
+    }
 
-    // Pre-fetched views to avoid repeated findViewById calls
+    private data class RuleRowViews(val pattern: TextView, val sound: TextView, val enable: SwitchMaterial)
     private val ruleRowViews = mutableListOf<RuleRowViews>()
-
-    // UriConverters can be a member variable as it's stateless
     private val uriConverters = UriConverters()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Find all views once and store them
         initializeRuleViews()
-
-        ensureChannels(this)
+        ensureNotificationChannel(this)
 
         lifecycleScope.launch {
-            // Use repeatOnLifecycle for better lifecycle management
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.rulesData.collect { displayList ->
                     setDisplayUnit(displayList)
@@ -94,12 +97,28 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun hasNotificationAccess(): Boolean {
+    private fun hasNotificationListenerAccess(): Boolean {
         return NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
     }
 
-    private fun promptNotificationAccess() {
-        startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+    private fun promptPermissions(isEnablingRule: Boolean) {
+        // 1. 通知リスナー権限のチェック (最優先)
+        if (!hasNotificationListenerAccess()) {
+            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
+            return
+        }
+
+        // 2. 通知発行権限のチェック (ルール有効化時のみ)
+        if (isEnablingRule && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED -> {
+                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
     }
 
     private fun setDisplayUnit(rules: List<RuleDisplayItem>) {
@@ -107,35 +126,25 @@ class MainActivity : AppCompatActivity() {
             val rule = rules.getOrNull(index)
 
             val soundUri = uriConverters.toUri(rule?.soundKeyDisplay) ?: Uri.EMPTY
-            val soundName = if (soundUri == Uri.EMPTY) {
-                ""
-            } else {
-                RingtoneManager.getRingtone(this, soundUri)?.getTitle(this) ?: "Undefined"
-            }
+            val soundName = if (soundUri == Uri.EMPTY) "" else RingtoneManager.getRingtone(this, soundUri)?.getTitle(this) ?: "Undefined"
 
             views.pattern.text = rule?.searchText.orEmpty()
             views.sound.text = soundName
 
-            // This pattern is important to prevent infinite loops.
-            // 1. Remove the listener.
             views.enable.setOnCheckedChangeListener(null)
-            // 2. Set the state from the data.
             views.enable.isChecked = rule?.isEnabled == true
-            // 3. Re-add the listener for user interactions.
             views.enable.setOnCheckedChangeListener { _, isChecked ->
+                // 権限チェックとリクエストをここで行う
+                promptPermissions(isEnablingRule = isChecked)
                 viewModel.updateRuleEnabled(index, isChecked)
-
-                if (isChecked && !hasNotificationAccess()) {
-                    promptNotificationAccess()
-                }
             }
         }
     }
 
-    fun ensureChannels(context: Context) {
+    private fun ensureNotificationChannel(context: Context) {
         val nm = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val ch = NotificationChannel(
-            ChannelID.CHATGPT_TASK,
+            AppConstants.CHATGPT_TASK,
             "ChatGPTタスク通知",
             NotificationManager.IMPORTANCE_DEFAULT
         )

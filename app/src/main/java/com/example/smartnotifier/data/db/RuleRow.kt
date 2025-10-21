@@ -8,10 +8,11 @@ import androidx.room.PrimaryKey
 @Entity(
     tableName = "rules",
     // channelIdとlineNumberの組み合わせがユニークであることを保証するインデックス
-    indices = [Index(value = ["channelId", "lineNumber"], unique = true)]
+    indices = [Index(value = ["packageName", "channelId", "lineNumber"], unique = true)]
 )
 data class RuleRow(
     @PrimaryKey(autoGenerate = true) val id: Long = 0L, // 独立したプライマリキー
+    val packageName: String,      // パッケージ名(pkg name)
     val channelId: String,        // チャンネルID
     val lineNumber: Int,          // 表示順 (0-9)
     val searchText: String?,      // 検索キーワード

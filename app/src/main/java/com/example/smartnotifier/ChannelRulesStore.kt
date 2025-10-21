@@ -50,6 +50,7 @@ object ChannelRulesStore {
     private fun defaultTenRows(): List<RuleRow> {
         return List(10) { index ->
             RuleRow(
+                packageName = AppConstants.CHATGPT_PACKAGENAME,
                 channelId = "", // ensureInitializedで正しいIDが設定されるため、ここでは空
                 lineNumber = index,
                 searchText = "slot${index + 1}",

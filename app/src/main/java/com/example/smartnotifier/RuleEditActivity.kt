@@ -83,7 +83,7 @@ class RuleEditActivity : AppCompatActivity() {
 
         btnSave = findViewById(R.id.btnSave)
         btnSave.setOnClickListener {
-            viewModel.updateByChannel(ChannelID.CHATGPT_TASK, rulesRowsCache)
+            viewModel.updateByChannel(AppConstants.CHATGPT_TASK, rulesRowsCache)
             setDirty(false)
         }
 
