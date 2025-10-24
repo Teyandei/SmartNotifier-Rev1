@@ -3,6 +3,7 @@ package com.example.smartnotifier
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.media.RingtoneManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -54,17 +55,19 @@ class SmartNotifierService : NotificationListenerService() {
     private fun repostNotification(soundUri: android.net.Uri?, title: String, text: String) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val tempChannelId = "smart_notifier_repost"
-        // 再通知用のチャンネルがなければ作成
-        if (notificationManager.getNotificationChannel(tempChannelId) == null) {
-            val channel = NotificationChannel(tempChannelId, "Smart Notifier Repost", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Notifications reposted by Smart Notifier with custom sounds."
+        val channelIdForSound = "repost_${soundUri?.toString() ?: "default"}"
+
+        if (notificationManager.getNotificationChannel(channelIdForSound) == null) {
+            // 【改善点】チャンネル名に、通知音自身の名前を使う
+            val soundTitle = soundUri?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) } ?: "Custom Sound"
+            val channel = NotificationChannel(channelIdForSound, soundTitle, NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Custom sound notifications by Smart Notifier"
                 setSound(soundUri, null)
             }
             notificationManager.createNotificationChannel(channel)
         }
 
-        val notification = NotificationCompat.Builder(this, tempChannelId)
+        val notification = NotificationCompat.Builder(this, channelIdForSound)
             .setSmallIcon(R.drawable.ic_launcher_foreground) // TODO: 正式なアイコンに要変更
             .setContentTitle(title)
             .setContentText(text)
@@ -72,7 +75,6 @@ class SmartNotifierService : NotificationListenerService() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        // 一意のIDで通知を発行（元の通知IDとは別にする）
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)
     }
 

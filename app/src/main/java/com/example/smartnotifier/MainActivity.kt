@@ -27,6 +27,8 @@ import com.example.smartnotifier.data.db.UriConverters
 import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.launch
 
+
+
 class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels {
