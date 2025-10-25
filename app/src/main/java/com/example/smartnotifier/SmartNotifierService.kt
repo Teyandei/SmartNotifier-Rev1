@@ -2,7 +2,6 @@ package com.example.smartnotifier
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import android.media.RingtoneManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
