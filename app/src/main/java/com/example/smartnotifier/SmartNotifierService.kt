@@ -57,7 +57,7 @@ class SmartNotifierService : NotificationListenerService() {
     }
 
     private fun repostNotification(soundUri: android.net.Uri?, title: String, text: String) {
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val channelIdForSound = "repost_${soundUri?.toString() ?: "default"}"
 
