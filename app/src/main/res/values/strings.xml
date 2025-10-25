@@ -30,8 +30,18 @@
     <string name="hinst_tap_to_select">Tap to Select</string>
 
     <!-- bottton actions -->
-    <string name="btn_action_commit">Coomit</string>
+    <string name="btn_action_commit">Commit</string>
     <string name="btn_action_return">Return</string>
     <string name="btn_action_save">Save</string>
 
+    <!-- Permissions -->
+    <string name="permission_listener_title">1. Notification Access</string>
+    <string name="permission_listener_message">To change notification sounds, two permissions are required. First, please enable Notification Access. You may need to tap the switch again to grant the second permission.</string>
+    <string name="permission_listener_positive">Go to Settings</string>
+    <string name="permission_listener_negative">Cancel</string>
+
+    <string name="permission_post_notification_title">2. Notification Permission</string>
+    <string name="permission_post_notification_message">This is the second permission. Please allow Smart Notifier to send notifications. This is necessary to play the custom sound. If the switch turned off, please tap it again.</string>
+    <string name="permission_post_notification_positive">Continue</string>
+    <string name="permission_post_notification_negative">Cancel</string>
 </resources>

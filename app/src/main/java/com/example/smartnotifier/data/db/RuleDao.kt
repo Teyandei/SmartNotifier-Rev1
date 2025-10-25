@@ -11,11 +11,8 @@ import androidx.room.Update
 @Dao
 interface RuleDao {
 
-    @Query("SELECT * FROM rules WHERE channelId = :channelId ORDER BY priority DESC, id ASC")
+    @Query("SELECT * FROM rules WHERE channelId = :channelId ORDER BY lineNumber ASC")
     suspend fun getByChannel(channelId: String): List<RuleRow>
-
-    @Query("SELECT * FROM rules WHERE appPackage = :pkg AND enabled = 1 ORDER BY priority DESC, id ASC")
-    suspend fun getEnabledByPackage(pkg: String): List<RuleRow>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(rule: RuleRow): Long

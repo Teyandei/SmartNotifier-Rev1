@@ -1,18 +1,21 @@
 package com.example.smartnotifier.data.db
 
 import android.net.Uri
-import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "rules")
+@Entity(
+    tableName = "rules",
+    // channelIdとlineNumberの組み合わせがユニークであることを保証するインデックス
+    indices = [Index(value = ["packageName", "channelId", "lineNumber"], unique = true)]
+)
 data class RuleRow(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
-    val channelId: String,
-    val appPackage: String? = null,
-    val soundKey: Uri? = null,          // Uri をそのまま扱える（Converterで保存）
-    val enabled: Boolean = false,
-    val priority: Int = 0,
-    @ColumnInfo(name = "note")
-    val searchText: String? = null
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L, // 独立したプライマリキー
+    val packageName: String,      // パッケージ名(pkg name)
+    val channelId: String,        // チャンネルID
+    val lineNumber: Int,          // 表示順 (0-9)
+    val searchText: String?,      // 検索キーワード
+    val soundKey: Uri?,           // 通知音のURI
+    val enabled: Boolean = false  // ルールの有効/無効フラグ
 )

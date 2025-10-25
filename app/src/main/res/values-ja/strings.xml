@@ -35,4 +35,14 @@
     <string name="btn_action_return">戻る</string>
     <string name="btn_action_save">保存</string>
 
+    <!-- Permissions -->
+    <string name="permission_listener_title">①「通知へのアクセス」</string>
+    <string name="permission_listener_message">通知音を変更するには2つの権限が必要です。最初に「通知へのアクセス」を許可してください。2つ目の権限を許可するために、もう一度スイッチをタップする必要がある場合があります。</string>
+    <string name="permission_listener_positive">設定に進む</string>
+    <string name="permission_listener_negative">キャンセル</string>
+
+    <string name="permission_post_notification_title">②「通知の権限」</string>
+    <string name="permission_post_notification_message">これが2つ目の権限です。カスタムサウンドを再生するため、本アプリが通知を発行することを許可してください。スイッチがOFFに戻った場合は、お手数ですがもう一度スイッチをONにしてください。</string>
+    <string name="permission_post_notification_positive">続ける</string>
+    <string name="permission_post_notification_negative">キャンセル</string>
 </resources>
