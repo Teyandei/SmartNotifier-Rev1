@@ -1,6 +1,7 @@
 package com.example.smartnotifier
 
 import android.Manifest
+import android.app.AlertDialog
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -26,8 +27,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.smartnotifier.data.db.UriConverters
 import com.google.android.material.switchmaterial.SwitchMaterial
 import kotlinx.coroutines.launch
-
-
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,9 +44,9 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
-            // 権限が付与された。特に何もしなくても、ユーザーは次の操作を続けられる。
+            Log.d("MainActivity", "Notification permission granted.")
         } else {
-            // 権限が拒否された。必要であれば、なぜ権限が必要かを説明するUIを表示する。
+            Log.d("MainActivity", "Notification permission denied.")
         }
     }
 
@@ -97,30 +97,62 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
+
+        ruleRowViews.forEachIndexed { index, views ->
+            views.enable.setOnCheckedChangeListener { switchView, isChecked ->
+                if (isChecked) {
+                    // --- ルールを有効にしようとした時 ---
+
+                    // 1. 通知リスナー権限をチェック
+                    if (!hasNotificationListenerAccess()) {
+                        showListenerAccessDialog()
+                        switchView.isChecked = false
+                        return@setOnCheckedChangeListener
+                    }
+
+                    // 2. 通知発行権限をチェック (Android 13+)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                        showPostNotificationDialog()
+                        switchView.isChecked = false
+                        return@setOnCheckedChangeListener
+                    }
+
+                    // 3. 全ての権限が揃っている場合のみ、状態を更新
+                    viewModel.updateRuleEnabled(index, true)
+                } else {
+                    // --- ルールを無効にする時 ---
+                    viewModel.updateRuleEnabled(index, false)
+                }
+            }
+        }
     }
 
     private fun hasNotificationListenerAccess(): Boolean {
         return NotificationManagerCompat.getEnabledListenerPackages(this).contains(packageName)
     }
 
-    private fun promptPermissions(isEnablingRule: Boolean) {
-        // 1. 通知リスナー権限のチェック (最優先)
-        if (!hasNotificationListenerAccess()) {
-            startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-            return
-        }
-
-        // 2. 通知発行権限のチェック (ルール有効化時のみ)
-        if (isEnablingRule && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED -> {
-                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
+    private fun showListenerAccessDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.permission_listener_title))
+            .setMessage(getString(R.string.permission_listener_message))
+            .setPositiveButton(getString(R.string.permission_listener_positive)) { _, _ ->
+                startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
             }
-        }
+            .setNegativeButton(getString(R.string.permission_listener_negative), null)
+            .show()
+    }
+
+    private fun showPostNotificationDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.permission_post_notification_title))
+            .setMessage(getString(R.string.permission_post_notification_message))
+            .setPositiveButton(getString(R.string.permission_post_notification_positive)) { _, _ ->
+                // OSの権限要求ダイアログを直接表示
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            .setNegativeButton(getString(R.string.permission_post_notification_negative), null)
+            .show()
     }
 
     private fun setDisplayUnit(rules: List<RuleDisplayItem>) {
@@ -132,14 +164,7 @@ class MainActivity : AppCompatActivity() {
 
             views.pattern.text = rule?.searchText.orEmpty()
             views.sound.text = soundName
-
-            views.enable.setOnCheckedChangeListener(null)
             views.enable.isChecked = rule?.isEnabled == true
-            views.enable.setOnCheckedChangeListener { _, isChecked ->
-                // 権限チェックとリクエストをここで行う
-                promptPermissions(isEnablingRule = isChecked)
-                viewModel.updateRuleEnabled(index, isChecked)
-            }
         }
     }
 

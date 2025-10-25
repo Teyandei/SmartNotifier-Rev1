@@ -8,6 +8,7 @@ import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +29,6 @@ class SmartNotifierService : NotificationListenerService() {
         val title = sbn.notification.extras.getString("android.title") ?: ""
         val text = sbn.notification.extras.getString("android.text") ?: ""
 
-        // ターゲットアプリ以外は無視
         if (pkg != AppConstants.CHATGPT_PACKAGENAME) return
 
         Log.i("SmartNotifier", "🔔 ChatGPT通知受信: (ID:$channelId) $title - $text")
@@ -42,12 +42,16 @@ class SmartNotifierService : NotificationListenerService() {
             }
 
             if (matchedRule != null) {
-                Log.i("SmartNotifier", "✅ ルールに一致: '${matchedRule.searchText}' -> 再通知します")
-
-                // ★【最重要】元の通知をキャンセルして、デフォルト音が鳴るのを防ぐ
-                cancelNotification(sbn.key)
-
-                repostNotification(matchedRule.soundKey, title, text)
+                // ★【最重要改善点】通知を発行する権限があるか、ここで最終確認する
+                if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
+                    Log.i("SmartNotifier", "✅ ルールに一致: '${matchedRule.searchText}' -> 再通知します")
+                    cancelNotification(sbn.key)
+                    repostNotification(matchedRule.soundKey, title, text)
+                } else {
+                    // 通知権限がない場合は、元の通知をキャンセルせず、何もしないことで
+                    // デフォルトの通知音での通知を妨げないようにする（フェイルセーフ）
+                    Log.w("SmartNotifier", "ルールには一致しましたが、通知発行権限がないため何もしません。")
+                }
             }
         }
     }
@@ -58,7 +62,6 @@ class SmartNotifierService : NotificationListenerService() {
         val channelIdForSound = "repost_${soundUri?.toString() ?: "default"}"
 
         if (notificationManager.getNotificationChannel(channelIdForSound) == null) {
-            // 【改善点】チャンネル名に、通知音自身の名前を使う
             val soundTitle = soundUri?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) } ?: "Custom Sound"
             val channel = NotificationChannel(channelIdForSound, soundTitle, NotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Custom sound notifications by Smart Notifier"
