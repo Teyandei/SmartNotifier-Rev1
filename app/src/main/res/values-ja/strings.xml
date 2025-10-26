@@ -45,4 +45,23 @@
     <string name="permission_post_notification_message">これが2つ目の権限です。カスタムサウンドを再生するため、本アプリが通知を発行することを許可してください。スイッチがOFFに戻った場合は、お手数ですがもう一度スイッチをONにしてください。</string>
     <string name="permission_post_notification_positive">続ける</string>
     <string name="permission_post_notification_negative">キャンセル</string>
+
+    <!-- Help -->
+    <string name="help_title">使い方</string>
+    <string name="help_text">
+        このアプリは、ChatGPTアプリの通知音を、キーワードに応じて変更するためのアプリです。\n\n
+
+        <b>1. 権限の許可</b>\n
+        このアプリを使用するには「通知へのアクセス」と「通知の権限」の2つの権限が必要です。メイン画面のスイッチをONにして、権限を許可してください。\n\n
+
+        <b>2. ルールの設定</b>\n
+        「設定」ボタンをタップして、最大10個のルールを設定できます。ルールごとに「検索キーワード」と「カスタムサウンド」を設定します。\n\n
+
+        <b>3. 動作の仕組み</b>\n
+        ChatGPTアプリから通知が届くと、このアプリは：\n
+        - 通知のタイトルや本文に、あなたが設定したキーワードが含まれているかチェックします。\n
+        - 一致するルールが見つかった場合、元の通知をキャンセルし、あなたが指定したカスタムサウンドで新しい通知を即座に発行します。\n\n
+
+        より詳細な使い方は、以下のウェブサイトをご覧ください。\nhttps://example.com/smart-notifier-help-ja
+    </string>
 </resources>

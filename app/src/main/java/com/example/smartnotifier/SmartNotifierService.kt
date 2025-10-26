@@ -41,28 +41,29 @@ class SmartNotifierService : NotificationListenerService() {
             }
 
             if (matchedRule != null) {
-                // ★【最重要改善点】通知を発行する権限があるか、ここで最終確認する
                 if (NotificationManagerCompat.from(applicationContext).areNotificationsEnabled()) {
                     Log.i("SmartNotifier", "✅ ルールに一致: '${matchedRule.searchText}' -> 再通知します")
                     cancelNotification(sbn.key)
-                    repostNotification(matchedRule.soundKey, title, text)
+                    repostNotification(matchedRule.soundKey, title, text, matchedRule.searchText)
                 } else {
-                    // 通知権限がない場合は、元の通知をキャンセルせず、何もしないことで
-                    // デフォルトの通知音での通知を妨げないようにする（フェイルセーフ）
                     Log.w("SmartNotifier", "ルールには一致しましたが、通知発行権限がないため何もしません。")
                 }
             }
         }
     }
 
-    private fun repostNotification(soundUri: android.net.Uri?, title: String, text: String) {
+    private fun repostNotification(soundUri: android.net.Uri?, title: String, text: String, searchText: String?) {
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val channelIdForSound = "repost_${soundUri?.toString() ?: "default"}"
 
         if (notificationManager.getNotificationChannel(channelIdForSound) == null) {
-            val soundTitle = soundUri?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) } ?: "Custom Sound"
-            val channel = NotificationChannel(channelIdForSound, soundTitle, NotificationManager.IMPORTANCE_HIGH).apply {
+            val channelName = if (!searchText.isNullOrBlank()) {
+                "Rule: $searchText"
+            } else {
+                soundUri?.let { RingtoneManager.getRingtone(this, it)?.getTitle(this) } ?: "Custom Sound"
+            }
+            val channel = NotificationChannel(channelIdForSound, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
                 description = "Custom sound notifications by Smart Notifier"
                 setSound(soundUri, null)
             }
@@ -70,7 +71,7 @@ class SmartNotifierService : NotificationListenerService() {
         }
 
         val notification = NotificationCompat.Builder(this, channelIdForSound)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // TODO: 正式なアイコンに要変更
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
             .setContentText(text)
             .setSound(soundUri)

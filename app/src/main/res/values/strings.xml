@@ -44,4 +44,23 @@
     <string name="permission_post_notification_message">This is the second permission. Please allow Smart Notifier to send notifications. This is necessary to play the custom sound. If the switch turned off, please tap it again.</string>
     <string name="permission_post_notification_positive">Continue</string>
     <string name="permission_post_notification_negative">Cancel</string>
+
+    <!-- Help -->
+    <string name="help_title">How to Use</string>
+    <string name="help_text">
+        This app changes the notification sound of the ChatGPT app based on keywords.\n\n
+
+        <b>1. Grant Permissions</b>\n
+        To use this app, you need to grant two permissions: "Notification Access" and "Notification Permission". Please enable them by tapping the switch on the main screen.\n\n
+
+        <b>2. Set Up Rules</b>\n
+        Tap the \"Settings\" button to configure up to 10 rules. For each rule, you can set a \"search keyword\" and a \"custom sound\".\n\n
+
+        <b>3. How It Works</b>\n
+        When a notification from the ChatGPT app arrives, this app will:\n
+        - Check if the notification title or text contains any of your keywords.\n
+        - If a match is found, it will cancel the original notification and immediately post a new one with your specified custom sound.\n\n
+
+        For more details, please visit our website:\nhttps://example.com/smart-notifier-help
+    </string>
 </resources>
