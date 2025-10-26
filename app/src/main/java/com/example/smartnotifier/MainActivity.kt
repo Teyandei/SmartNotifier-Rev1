@@ -26,6 +26,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.smartnotifier.data.db.UriConverters
 import com.google.android.material.switchmaterial.SwitchMaterial
+import com.google.android.material.appbar.MaterialToolbar
 import kotlinx.coroutines.launch
 import android.util.Log
 
@@ -57,6 +58,19 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val topBar = findViewById<MaterialToolbar>(R.id.topBar)
+        // 【重要】メニューファイルをツールバーに設定します
+        topBar.inflateMenu(R.menu.main_menu)
+        topBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_help -> {
+                    startActivity(Intent(this, HelpActivity::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
 
         initializeRuleViews()
         ensureNotificationChannel(this)

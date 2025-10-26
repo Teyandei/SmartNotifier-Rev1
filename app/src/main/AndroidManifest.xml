@@ -27,6 +27,10 @@
             android:name=".RuleEditActivity"
             android:exported="false"
             android:label="通知アクセス設定" />
+        <activity
+            android:name=".HelpActivity"
+            android:exported="false"
+            android:label="@string/help_title" />
         <service
             android:name=".SmartNotifierService"
             android:label="Smart Notifier"
