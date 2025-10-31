@@ -62,6 +62,6 @@
         - 通知のタイトルや本文に、あなたが設定したキーワードが含まれているかチェックします。\n
         - 一致するルールが見つかった場合、元の通知をキャンセルし、あなたが指定したカスタムサウンドで新しい通知を即座に発行します。\n\n
 
-        より詳細な使い方は、以下のウェブサイトをご覧ください。\nhttps://example.com/smart-notifier-help-ja
+        より詳細な使い方は、以下のウェブサイトをご覧ください。\nhttps://github.com/Teyandei/SmartNotifier-Rev1/blob/master/README.md
     </string>
 </resources>
