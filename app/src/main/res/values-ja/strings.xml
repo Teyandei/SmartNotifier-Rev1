@@ -64,4 +64,9 @@
 
         より詳細な使い方は、以下のウェブサイトをご覧ください。\nhttps://github.com/Teyandei/SmartNotifier-Rev1/blob/master/README.md
     </string>
+
+    <!-- Feedback -->
+    <string name="action_send_feedback">フィードバックを送信</string>
+    <string name="feedback_email_body_header">---- この線上にフィードバックを記入してください ----</string>
+    <string name="feedback_email_not_found">フィードバックを送信できるメールアプリが見つかりません。</string>
 </resources>
