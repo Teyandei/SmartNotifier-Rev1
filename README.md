@@ -116,4 +116,130 @@ SmartNotifier はこれを監視し、該当するキーワードが含まれる
 
 ## 🪪 ライセンス
 本アプリは個人開発プロジェクト **SmartNotifier-Rev1** の一部として提供されています。  
-ライセンス形態はリポジトリ内の `LICENSE` ファイルを参照してください。
+ライセンス形態はリポジトリ内の `LICENSE` ファイルを参照してください。  
+  
+  
+  
+---
+
+English explanation  
+
+# SmartNotifier-Rev1
+
+**SmartNotifier-Rev1** is an Android app that lets you customize ChatGPT notification sounds based on specific keywords.
+For example, you can set a unique voice clip to play only when the notification says “Break time started.”
+
+---
+
+## 🧩 How It Works
+
+1. When a ChatGPT app notification appears, SmartNotifier detects its title or body text.
+
+2. If a registered keyword rule matches, the app cancels the original notification and immediately issues a new one with your chosen custom sound.
+
+This allows you to make ChatGPT’s scheduled notifications audible in any sound or voice you prefer.
+
+---
+
+## 💬 About ChatGPT Notifications
+Notification Mechanism
+
+In ChatGPT, you can schedule task notifications by defining the title and message through a prompt.
+
+**Example Prompt:**
+
+> Please schedule a “Start break” notification every weekday at 10:50, 11:50, 12:50, 13:50, 14:50, 15:50, and 16:50.
+
+**ChatGPT’s reply:**
+
+> Done.
+> I’ll remind you to “Start your break” at those times on weekdays.
+
+ChatGPT sends these notifications at the specified times.
+SmartNotifier monitors them, and when the text contains a matching keyword, it re-notifies you with the assigned sound.
+
+> ※ Scheduling notifications is only available on ChatGPT Web, not the mobile app.
+
+## 🔧 Required Settings
+### Enable ChatGPT Notifications
+
+1. Open your phone’s Settings → Apps → See all apps, then choose ChatGPT.
+2. Tap Notifications and make sure “Allow all ChatGPT notifications” is turned on.
+   (Menu names may differ depending on the device.)
+
+### Grant SmartNotifier Permissions
+
+This app requires two permissions:
+
+- Notification access
+- Post notifications
+
+When you turn on the switch in the main screen, SmartNotifier will automatically display the permission request screens.
+You may need to tap the switch several times (usually up to three) before the permissions are fully granted.
+
+Once granted, SmartNotifier can monitor ChatGPT notifications.
+
+---
+
+## ⚙️ Setting Up Rules
+
+Tap the Settings button to register up to 10 rules.
+Each rule has the following items:
+
+- **Search Keyword** – A string contained in the notification text
+- **Custom Sound** – The notification sound to play when matched
+
+Example:
+| Keyword | Notification Sound |
+|--------------|-------------|
+| Break | voice_break.mp3 |
+
+> In this case, when ChatGPT sends “Start your break,” SmartNotifier will play voice_break.mp3.
+
+**Notes:**
+
+- ChatGPT must be running in the background.
+- If multiple notifications occur simultaneously, a short delay may happen.
+- SmartNotifier continues monitoring even when closed.
+
+---
+
+## 🔊 Example: Voice Notifications
+
+Typical notification sounds are monotone and can be unclear for specific tasks.
+Here’s how to announce “Break time started” using a voice file.
+
+### 1. Create the Voice File
+
+1. Visit [Voicemaker™](https://voicemaker.in/) and create a free account.
+2. Generate an audio message such as: “Break time started. Please stop working and take a rest.”
+3. Download and rename it (e.g., voice_break.mp3).
+
+### 2. Add It to Your Notification List
+
+1. Go to Settings → Sound & Vibration → Default notification sound.
+2. Choose “Files on device” and select your downloaded MP3.
+   (Display options vary by device.)
+
+### 3. Configure in SmartNotifier
+
+1. Open SmartNotifier’s Settings screen.
+2. Enter “Break” as the Keyword.
+3. Select voice_break.mp3 for the Notification Sound.
+
+Now, when ChatGPT sends “Start your break,” you’ll hear the voice clip say:
+“Break time started. Please stop working and take a rest.”
+
+---
+
+## 🧠 Key Features
+
+- Enhances ChatGPT’s scheduled notifications with flexible sound patterns
+- Up to 10 custom sounds per keyword
+- Runs in the background for continuous monitoring
+- Prevents unwanted sounds—only your target notifications play, even with earphones on
+
+## 🪪 License
+
+This app is part of the personal development project SmartNotifier-Rev1.  
+For license details, see the `LICENSE` file in the repository.

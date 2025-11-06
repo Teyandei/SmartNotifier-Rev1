@@ -38,3 +38,8 @@ out/
 
 # Android test artifacts
 captures/
+
+# Keystore files
+*.jks
+*.keystore
+*.pem
