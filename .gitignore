@@ -12,6 +12,7 @@
 # Build outputs
 /build/
 app/build/
+app/release
 
 # Gradle
 .gradle/

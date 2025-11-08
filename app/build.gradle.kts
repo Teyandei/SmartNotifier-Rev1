@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.smartnotifier"
+        applicationId = "com.teyanday.smartnotifier"
         minSdk = 26
         targetSdk = 36
         versionCode = 4
