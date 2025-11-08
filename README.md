@@ -160,6 +160,8 @@ SmartNotifier monitors them, and when the text contains a matching keyword, it r
 
 > ※ Scheduling notifications is only available on ChatGPT Web, not the mobile app.
 
+---
+
 ## 🔧 Required Settings
 ### Enable ChatGPT Notifications
 
