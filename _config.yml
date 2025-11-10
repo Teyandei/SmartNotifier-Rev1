@@ -1,2 +1,4 @@
 title: SmartNotifier
 theme: jekyll-theme-cayman
+include:
+  - assets/css/table.css
