@@ -1,4 +1,10 @@
 title: SmartNotifier
 theme: jekyll-theme-cayman
+
+markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+
 include:
   - assets/css/table.css
