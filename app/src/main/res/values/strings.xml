@@ -61,7 +61,7 @@
         - Check if the notification title or text contains any of your keywords.\n
         - If a match is found, it will cancel the original notification and immediately post a new one with your specified custom sound.\n\n
 
-        For more details, please visit our website:\nhttps://github.com/Teyandei/SmartNotifier-Rev1/blob/master/README.md
+        For more details, please visit our website:\nhttps://teyandei.github.io/SmartNotifier-Rev1/
     </string>
 
     <!-- Feedback -->
